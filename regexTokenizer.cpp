@@ -1,0 +1,227 @@
+#include "RegexTokenizer.hpp"
+
+#include <stack>
+#include <string>
+#include <vector>
+
+
+TokenType OpenParenToken::get_token_type() const {
+  return OPENPAREN;
+}
+std::string OpenParenToken::get_str_rep() const {
+  return "(";
+}
+
+TokenType NonCaptOpenParenToken::get_token_type() const {
+  return NONCAPOPENPAREN;
+}
+std::string NonCaptOpenParenToken::get_str_rep() const {
+  return "(?:";
+}
+
+TokenType CloseParenToken::get_token_type() const {
+  return CLOSEPAREN;
+}
+std::string CloseParenToken::get_str_rep() const {
+  return ")";
+}
+
+TokenType ConcatToken::get_token_type() const {
+  return CONCAT;
+}
+std::string ConcatToken::get_str_rep() const {
+  return "::";
+}
+
+TokenType AlternatorToken::get_token_type() const {
+  return ALTERNATOR;
+}
+std::string AlternatorToken::get_str_rep() const {
+  return "|";
+}
+
+TokenType KleeneStarToken::get_token_type() const {
+  return KLEENESTAR;
+}
+std::string KleeneStarToken::get_str_rep() const {
+  return "*";
+}
+
+TokenType KleenePlusToken::get_token_type() const {
+  return KLEENEPLUS;
+}
+std::string KleenePlusToken::get_str_rep() const {
+  return "+";
+}
+
+TokenType KleeneQuestionToken::get_token_type() const {
+  return KLEENEQUESTION;
+}
+std::string KleeneQuestionToken::get_str_rep() const {
+  return "?";
+}
+
+CharacterClassToken::CharacterClassToken(std::string s, bool invert) {
+  invert_selection = invert;
+  str_rep = std::string(s.begin(), s.end());
+  for(std::string::iterator it = s.begin(); it != s.end(); ++it) {
+    acceptedCharacters.push_back(*it);
+  }
+}
+TokenType CharacterClassToken::get_token_type() const {
+  return CHARCLASS;
+}
+std::string CharacterClassToken::get_str_rep() const {
+  std::string s;
+  if(invert_selection) s = "^";
+  return "[" + s + str_rep + "]";
+}
+
+TokenType WildCharToken::get_token_type() const {
+  return WILDCHAR;
+}
+std::string WildCharToken::get_str_rep() const {
+  return ".";
+}
+
+std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
+  std::vector<RegexToken*> v;
+  for(std::string::iterator it = s.begin(); it != s.end(); ++it) {
+    switch(*it) {
+    case '(':
+      {
+	if(*(it+1)=='?' && *(it+2)==':') {
+	  v.push_back(new NonCaptOpenParenToken());
+	  it += 2;
+	} else {
+	  v.push_back(new OpenParenToken());
+	}
+	break;
+      }
+    case ')':
+      {
+	v.push_back(new CloseParenToken());
+	break;
+      }
+    case '|':
+      {
+	v.push_back(new AlternatorToken());
+	break;
+      }
+    case '*':
+      {
+	v.push_back(new KleeneStarToken());
+	break;
+      }
+    case '+':
+      {
+	v.push_back(new KleenePlusToken());
+	break;
+      }
+    case '?':
+      {
+	v.push_back(new KleeneQuestionToken());
+	break;
+      }
+    case '.':
+      {
+	v.push_back(new WildCharToken());
+	break;
+      }
+    default:
+      {
+	std::vector<char> cv;
+	bool invert = false;
+	if(*it == '[') {
+	  ++it;
+	  if(*it == '^') {
+	    invert = true;
+	    ++it;
+	  }
+	  if(*it == ']') {
+	    // Special case for including the closing square bracket,
+	    // which can only be the first character in the character class
+	    cv.push_back(*it);
+	    ++it;
+	  }
+	  std::string remainingString(it, s.end());
+	  size_t closeLocation = remainingString.find(']');
+	  for(std::string::iterator jt=remainingString.begin();
+	      jt != remainingString.begin()+closeLocation;
+	      ++jt) {
+	    cv.push_back(*jt);
+	    ++it;
+	  }
+	  v.push_back(new CharacterClassToken(std::string(cv.begin(), cv.end()), invert));
+	} else {
+	  cv.push_back(*it);
+	  v.push_back(new CharacterClassToken(std::string(cv.begin(), cv.end()), invert));
+	}
+	break;
+      }
+    }
+  }
+  return v;
+}
+
+
+std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken*> tokensWithoutConcats) {
+  std::vector<RegexToken*> v2;
+  if(tokensWithoutConcats.size() < 2) {
+    v2 = tokensWithoutConcats;
+    return v2;
+  }
+  v2.push_back(tokensWithoutConcats[0]);
+  for(std::vector<RegexToken*>::iterator it=tokensWithoutConcats.begin()+1;
+      it != tokensWithoutConcats.end();
+      ++it) {
+    RegexToken* prevToken = *(it-1);
+    bool okPrevToken;
+    switch(prevToken->get_token_type()) {
+    case OPENPAREN:
+    case CONCAT:
+    case ALTERNATOR:
+      okPrevToken = false;
+      break;
+    case CLOSEPAREN:
+    case KLEENESTAR:
+    case KLEENEPLUS:
+    case KLEENEQUESTION:
+    case CHARCLASS:
+    case WILDCHAR:
+    default:
+      okPrevToken = true;
+      break;
+    }
+    RegexToken* currToken = *it;
+    bool okCurrToken;
+    switch(currToken->get_token_type()) {
+    case OPENPAREN:
+    case CHARCLASS:
+    case WILDCHAR:
+      okCurrToken = true;
+      break;
+    case CLOSEPAREN:
+    case CONCAT:
+    case ALTERNATOR:
+    case KLEENESTAR:
+    case KLEENEPLUS:
+    case KLEENEQUESTION:
+    default:
+      okCurrToken = false;
+      break;
+    }
+
+    if(okPrevToken && okCurrToken) {
+      v2.push_back(new ConcatToken());
+    }
+    v2.push_back(currToken);
+    
+  }
+
+  return v2;
+}
+
+std::stack<RegexToken*> RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
+  
+}
