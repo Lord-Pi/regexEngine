@@ -1,4 +1,7 @@
-#include "RegexTokenizer.hpp"
+
+
+#include "regexTokenizer.hpp"
+#include "tokenizerParserTypes.hpp"
 
 #include <stack>
 #include <string>
@@ -220,8 +223,4 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
   }
 
   return v2;
-}
-
-std::stack<RegexToken*> RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
-  
 }

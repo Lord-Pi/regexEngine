@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "RegexParser.hpp"
+#include "regexParser.hpp"
+#include "regexTokenizer.hpp"
 
 
 int main(int argc, char *argv[]) {
@@ -26,4 +27,6 @@ int main(int argc, char *argv[]) {
     std::cout << " ";
   }
   std::cout << std::endl;
+
+  AstNode* treeRoot = RegexParser::shuntingYard(v2);
 }

@@ -1,7 +1,8 @@
 #ifndef __REGEX_TOKENIZER_H_
 #define __REGEX_TOKENIZER_H_
 
-#include <stack>
+#include "tokenizerParserTypes.hpp"
+
 #include <string>
 #include <vector>
 
