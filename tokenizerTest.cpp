@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "tokenizerParserTypes.hpp"
 #include "regexParser.hpp"
 #include "regexTokenizer.hpp"
 

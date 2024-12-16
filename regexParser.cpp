@@ -3,6 +3,7 @@
 #include "regexTokenizer.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <stack>
 #include <stdexcept>
 #include <vector>
@@ -83,7 +84,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
   case CLOSEPAREN:
     {
       do {
-	applyOperatorToStack(s, (operatorStandby.top())->get_token_type());
+	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type());
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
 	free(used);
@@ -98,7 +99,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
 	    (operatorStandby.top())->get_token_type() != OPENPAREN &&
 	    (operatorStandby.top())->get_token_type() != NONCAPOPENPAREN &&
 	    getOperatorPrecedence((operatorStandby.top())->get_token_type()) >= getOperatorPrecedence(tok->get_token_type())) {
-	applyOperatorToStack(s, (operatorStandby.top())->get_token_type());
+	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type());
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
 	free(used);
@@ -118,12 +119,12 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
   for(std::vector<RegexToken*>::iterator it = infix.begin();
       it != infix.end();
       ++it) {
-    shuntingYardInternal(outputLine, operatorStandby, *it)
+    shuntingYardInternal(outputLine, operatorStandby, *it);
   }
   while(!operatorStandby.empty()) {
     RegexToken* nextTok = operatorStandby.top();
     operatorStandby.pop();
-    shuntingYardInternal(outputLine, operatorStandby, nextTok);
+    applyOperatorToStack(outputLine, nextTok->get_token_type());
   }
 
   assert(outputLine.size() == 1);
