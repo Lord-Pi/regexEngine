@@ -9,6 +9,30 @@
 #include <vector>
 
 
+std::string AstCharacterNode::toString() const {
+  return "CHAR(" + tkn->get_str_rep() + ")";
+}
+
+std::string AstUnaryOpNode::toString() const {
+  return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
+    child->toString() + ")";
+}
+
+std::string AstBinaryOpNode::toString() const {
+  return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
+    leftChild->toString() + ", " +
+    rightChild->toString() + ")";  
+}
+
+std::string AstGroupNode::toString() const {
+  if(capturing) {
+    return "CAPTUREGROUP(" + child->toString() + ")";
+  } else {
+    return "NOCAPGROUP(" + child->toString() + ")";
+  }
+}
+
+
 int RegexParser::getOperatorPrecedence(TokenType op) {
   switch(op) {
   case ALTERNATOR:

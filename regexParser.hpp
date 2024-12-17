@@ -5,11 +5,13 @@
 #include "regexTokenizer.hpp"
 
 #include <stack>
+#include <string>
 #include <vector>
 
 
 class AstNode {
-
+public:
+  virtual std::string toString() const = 0;
 };
 
 class AstCharacterNode : public AstNode {
@@ -17,6 +19,7 @@ private:
   RegexToken* tkn;
 public:
   AstCharacterNode(RegexToken* tkn) : tkn(tkn) {}
+  std::string toString() const;
 };
 
 class AstUnaryOpNode : public AstNode {
@@ -26,6 +29,7 @@ private:
 public:
   AstUnaryOpNode(AstNode* child, TokenType op) : child(child),
 						 op(op) {}
+  std::string toString() const;
 };
 
 class AstBinaryOpNode : public AstNode {
@@ -37,6 +41,7 @@ public:
   AstBinaryOpNode(AstNode* leftChild, AstNode* rightChild, TokenType op) : leftChild(leftChild),
 									   rightChild(rightChild),
 									   op(op) {}
+  std::string toString() const;
 };
 
 class AstGroupNode : public AstNode {
@@ -46,6 +51,7 @@ private:
 public:
   AstGroupNode(AstNode* child, bool capturing) : child(child),
 						 capturing(capturing) {}
+  std::string toString() const;
 };
 
 
