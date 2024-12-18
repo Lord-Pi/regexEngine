@@ -17,6 +17,7 @@ private:
   bool isRed;
 
   void bstInsert(RedBlackNode<T>* newNode);
+  bool bstUniqueInsert(RedBlackNode<T>* newNode);
   void colorCorrect(RedBlackNode<T>* newNode);
   bool isLeftChild() const;
   void rotateLeft();
@@ -41,6 +42,7 @@ public:
   RedBlackNode<T>* getUncle() const;
 
   RedBlackNode<T>* redBlackInsert(RedBlackNode<T>* newNode);
+  RedBlackNode<T>* redBlackUniqueInsert(RedBlackNode<T>* newNode);
   bool find(T val);
   
   void traverseInOrder(std::string delim) const;
@@ -56,6 +58,7 @@ public:
   RedBlackTree();
   RedBlackTree(T t);
   void redBlackInsert(T val);
+  void redBlackUniqueInsert(T val);
   bool find(T val) const;
   void traverseInOrder(std::string delim) const;
   void traversePreOrder(std::string delim) const;
@@ -140,8 +143,8 @@ RedBlackNode<T>* RedBlackNode<T>::getUncle() const {
   return g->getLeft();
 }
 
-//Probably important note: assumes that there are no duplicates in the tree
-template<typename T>
+// Probably important note: assumes that there are no duplicates in the tree
+template <typename T>
 void RedBlackNode<T>::bstInsert(RedBlackNode<T>* newNode) {
   if(newNode->getValue() < value) {
     if(left == nullptr) {
@@ -160,8 +163,34 @@ void RedBlackNode<T>::bstInsert(RedBlackNode<T>* newNode) {
   }
 }
 
+// Actually checks if there are duplicates as we go
+// Returns true if insert was successful (inserted element was not already in tree)
+// Returns false if insert was not successful (inserted element was already in tree)
+template <typename T>
+bool RedBlackNode<T>::bstUniqueInsert(RedBlackNode<T>* newNode) {
+  if(newNode->getValue() < value) {
+    if(left == nullptr) {
+      newNode->setParent(this);
+      left = newNode;
+      return true;
+    } else {
+      return left->bstUniqueInsert(newNode);
+    }
+  } else if(newNode->getValue() > value) {
+    if(right == nullptr) {
+      newNode->setParent(this);
+      right = newNode;
+      return true;
+    } else {
+      return right->bstUniqueInsert(newNode);
+    }
+  } else {
+    return false;
+  }
+}
+
 // Assumes there is a right child to rotate into current position
-template<typename T>
+template <typename T>
 void RedBlackNode<T>::rotateLeft() {
   RedBlackNode<T>* upperNode = getParent();
   RedBlackNode<T>* rotationChild = getRight();
@@ -181,7 +210,7 @@ void RedBlackNode<T>::rotateLeft() {
 }
 
 // Assumes there is a right child to rotate into current position
-template<typename T>
+template <typename T>
 void RedBlackNode<T>::rotateRight() {
   RedBlackNode<T>* upperNode = getParent();
   RedBlackNode<T>* rotationChild = getLeft();
@@ -200,7 +229,7 @@ void RedBlackNode<T>::rotateRight() {
   if(middleTree != nullptr) middleTree->setParent(this);
 }
 
-template<typename T>
+template <typename T>
 void RedBlackNode<T>::colorCorrect(RedBlackNode<T>* newNode) {
   RedBlackNode<T>* p = newNode->getParent();
   if(p == nullptr) return;			    // Case 3
@@ -260,21 +289,30 @@ void RedBlackNode<T>::colorCorrect(RedBlackNode<T>* newNode) {
 }
 
 
-template<typename T>
+template <typename T>
 RedBlackNode<T>* RedBlackNode<T>::findRoot() {
   if(getParent() == nullptr) return this;
   return getParent()->findRoot();
 }		 
 
 // Returns the new root node of the tree, in case rotations have happened
-template<typename T>
+template <typename T>
 RedBlackNode<T>* RedBlackNode<T>::redBlackInsert(RedBlackNode<T>* newNode) {
   bstInsert(newNode);
   colorCorrect(newNode);
   return findRoot();
 }
 
-template<typename T>
+// Returns the new root node of the tree, in case rotations have happened
+template <typename T>
+RedBlackNode<T>* RedBlackNode<T>::redBlackUniqueInsert(RedBlackNode<T>* newNode) {
+  if(bstUniqueInsert(newNode)) {
+    colorCorrect(newNode);
+  }
+  return findRoot();
+}
+
+template <typename T>
 bool RedBlackNode<T>::find(T val) {
   if(val == value) return true;
   if(val < value) {
@@ -286,14 +324,14 @@ bool RedBlackNode<T>::find(T val) {
   }
 }
 
-template<typename T>
+template <typename T>
 void RedBlackNode<T>::traverseInOrder(std::string delim) const {
   if(getLeft() != nullptr) getLeft()->traverseInOrder(delim);
   std::cout << getValue() << delim;
   if(getRight() != nullptr) getRight()->traverseInOrder(delim);
 }
 
-template<typename T>
+template <typename T>
 void RedBlackNode<T>::traversePreOrder(std::string delim) const {
   std::cout << getValue() << delim;
   if(getLeft() != nullptr) getLeft()->traversePreOrder(delim);
@@ -304,18 +342,18 @@ void RedBlackNode<T>::traversePreOrder(std::string delim) const {
 
 
 
-template<typename T>
+template <typename T>
 RedBlackTree<T>::RedBlackTree() {
   root = nullptr;
 }
 
-template<typename T>
+template <typename T>
 RedBlackTree<T>::RedBlackTree(T t) {
   root = nullptr;
   redBlackInsert(t);
 }
 
-template<typename T>
+template <typename T>
 void RedBlackTree<T>::redBlackInsert(T val) {
   RedBlackNode<T>* newNode = new RedBlackNode<T>(val);
   if(root == nullptr) {
@@ -325,17 +363,27 @@ void RedBlackTree<T>::redBlackInsert(T val) {
   }
 }
 
-template<typename T>
+template <typename T>
+void RedBlackTree<T>::redBlackUniqueInsert(T val) {
+  RedBlackNode<T>* newNode = new RedBlackNode<T>(val);
+  if(root == nullptr) {
+    root = newNode;
+  } else {
+    root = root->redBlackUniqueInsert(newNode);
+  }
+}
+
+template <typename T>
 bool RedBlackTree<T>::find(T val) const {
   return root->find(val);
 }
 
-template<typename T>
+template <typename T>
 void RedBlackTree<T>::traverseInOrder(std::string delim) const {
   root->traverseInOrder(delim);
 }
 
-template<typename T>
+template <typename T>
 void RedBlackTree<T>::traversePreOrder(std::string delim) const {
   root->traversePreOrder(delim);
 }
