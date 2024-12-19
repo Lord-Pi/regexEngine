@@ -20,6 +20,7 @@ private:
 public:
   AstCharacterNode(RegexToken* tkn) : tkn(tkn) {}
   std::string toString() const;
+  AstNodeType getAstNodeType() const;
 };
 
 class AstUnaryOpNode : public AstNode {
@@ -30,6 +31,7 @@ public:
   AstUnaryOpNode(AstNode* child, TokenType op) : child(child),
 						 op(op) {}
   std::string toString() const;
+  AstNodeType getAstNodeType() const;
 };
 
 class AstBinaryOpNode : public AstNode {
@@ -42,6 +44,7 @@ public:
 									   rightChild(rightChild),
 									   op(op) {}
   std::string toString() const;
+  AstNodeType getAstNodeType() const;
 };
 
 class AstGroupNode : public AstNode {
@@ -52,6 +55,7 @@ public:
   AstGroupNode(AstNode* child, bool capturing) : child(child),
 						 capturing(capturing) {}
   std::string toString() const;
+  AstNodeType getAstNodeType() const;
 };
 
 

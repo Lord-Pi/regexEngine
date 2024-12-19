@@ -17,6 +17,13 @@ enum TokenType {
   WILDCHAR
 };
 
+enum AstNodeType {
+  CHARACTER,
+  UNARY,
+  BINARY,
+  GROUP
+};
+
 
 class TokenTypeMethods {
 public:

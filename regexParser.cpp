@@ -12,16 +12,25 @@
 std::string AstCharacterNode::toString() const {
   return "CHAR(" + tkn->get_str_rep() + ")";
 }
+AstNodeType AstCharacterNode::getAstNodeType() const {
+  return CHARACTER;
+}
 
 std::string AstUnaryOpNode::toString() const {
   return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
     child->toString() + ")";
+}
+AstNodeType AstUnaryOpNode::getAstNodeType() const {
+  return UNARY;
 }
 
 std::string AstBinaryOpNode::toString() const {
   return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
     leftChild->toString() + ", " +
     rightChild->toString() + ")";  
+}
+AstNodeType AstBinaryOpNode::getAstNodeType() const {
+  return BINARY;
 }
 
 std::string AstGroupNode::toString() const {
@@ -30,6 +39,9 @@ std::string AstGroupNode::toString() const {
   } else {
     return "NOCAPGROUP(" + child->toString() + ")";
   }
+}
+AstNodeType AstGroupNode::getAstNodeType() const {
+  return GROUP;
 }
 
 
