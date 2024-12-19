@@ -30,6 +30,7 @@ public:
   void addGroupEnd(int i);
   std::vector<int> getGroupStarts();
   std::vector<int> getGroupEnds();
+  std::string printableForm();
 };
 
 
@@ -50,7 +51,8 @@ public:
 
   std::vector<Transition*> getTransitions();
   void addTransition(Transition* t);
-  
+
+  std::string printableForm();  
 };
 
 
@@ -62,9 +64,11 @@ private:
   
 public:
   NFA(std::string l1, std::string l2);
-  State* getStartState();
-  State* getEndState();
+  std::vector<State*> getStates();
+  int getStartStateIdx() const;
+  int getEndStateIdx() const;
   void addState(State* s);
+  std::string printableForm();
 };
 
 

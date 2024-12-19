@@ -6,14 +6,17 @@
 #include <vector>
 
 
+class Transition;
+class State;
+
 Transition::Transition(std::string label, bool inverted, State* destination) {
-  self->label = label;
+  this->label = label;
   if(label.length() == 0) {
     ccd_o.reset();
   } else {
     ccd_o.emplace(label, inverted);
   }
-  self->destination = destination;
+  this->destination = destination;
 }
 bool Transition::isEpsilon() const {
   return !ccd_o.has_value();
@@ -40,6 +43,17 @@ std::vector<int> Transition::getGroupStarts() {
 std::vector<int> Transition::getGroupEnds() {
   return groupEnds;
 }
+std::string Transition::printableForm() {
+  std::string printable;
+  if(label.length() == 0) {
+    printable.append("\u03B5");
+  } else {
+    printable.append(label);
+  }
+  printable.append(" -> ");
+  printable.append(destination->getLabel());
+  return printable;
+}
 
 
 
@@ -51,7 +65,7 @@ State::State(std::string label, bool isAccepting) {
 
 
 bool State::getIsAccepting() const {
-  return isAccpeting;
+  return isAccepting;
 }
 void State::setIsAccepting(bool b) {
   isAccepting = b;
@@ -67,8 +81,22 @@ void State::setLabel(std::string s) {
 std::vector<Transition*> State::getTransitions() {
   return transitions;
 }
-void State::addTransitions(Transition* t) {
+void State::addTransition(Transition* t) {
   transitions.push_back(t);
+}
+
+std::string State::printableForm() {
+  std::string printable;
+  printable.append(label);
+  printable.append(" {\n");
+  for(std::vector<Transition*>::iterator it = transitions.begin();
+      it != transitions.end();
+      ++it) {
+    printable.append((*it)->printableForm());
+    printable.append("\n");
+  }
+  printable.append("}");
+  return printable;
 }
 
 
@@ -81,12 +109,25 @@ NFA::NFA(std::string l1, std::string l2) {
   endStateIdx = 1;
 }
 
-State* NFA::getStartState() {
-  return states[startStateIdx];
+std::vector<State*> NFA::getStates() {
+  return states;
 }
-State* NFA::getEndState() {
-  return states[endStateIdx];
+int NFA::getStartStateIdx() const {
+  return startStateIdx;
+}
+int NFA::getEndStateIdx() const {
+  return endStateIdx;
 }
 void NFA::addState(State* s) {
   states.push_back(s);
+}
+std::string NFA::printableForm() {
+  std::string printable;
+  for(std::vector<State*>::iterator it = states.begin();
+      it != states.end();
+      ++it) {
+    printable.append((*it)->printableForm());
+    printable.append("\n\n");
+  }
+  return printable;
 }

@@ -4,6 +4,10 @@
 #include "tokenizerParserTypes.hpp"
 #include "regexParser.hpp"
 #include "regexTokenizer.hpp"
+#include "nfa.hpp"
+#include "nfaFactory.hpp"
+
+
 
 
 int main(int argc, char *argv[]) {
@@ -32,4 +36,9 @@ int main(int argc, char *argv[]) {
 
   AstNode* treeRoot = RegexParser::shuntingYard(v2);
   std::cout << treeRoot->toString() << std::endl;
+
+  NFAFactory factory;
+  NFA* nfa = factory.recursiveCreateNFA(treeRoot);
+
+  std::cout << nfa->printableForm() << std::endl;
 }

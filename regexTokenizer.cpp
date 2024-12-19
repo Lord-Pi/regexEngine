@@ -74,6 +74,12 @@ CharacterClassToken::CharacterClassToken(std::string s, bool invert) {
 TokenType CharacterClassToken::get_token_type() const {
   return CHARCLASS;
 }
+bool CharacterClassToken::get_is_inverted() const {
+  return invert_selection;
+}
+std::string CharacterClassToken::get_raw_str_rep() const {
+  return str_rep;
+}
 std::string CharacterClassToken::get_str_rep() const {
   std::string s;
   if(invert_selection) s = "^";

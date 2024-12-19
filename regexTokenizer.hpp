@@ -69,6 +69,8 @@ private:
 public:
   CharacterClassToken(std::string s, bool invert);
   TokenType get_token_type() const;
+  bool get_is_inverted() const;
+  std::string get_raw_str_rep() const;
   std::string get_str_rep() const;
 };
 

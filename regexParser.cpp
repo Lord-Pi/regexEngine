@@ -15,6 +15,9 @@ std::string AstCharacterNode::toString() const {
 AstNodeType AstCharacterNode::getAstNodeType() const {
   return CHARACTER;
 }
+RegexToken* AstCharacterNode::getToken() {
+  return tkn;
+}
 
 std::string AstUnaryOpNode::toString() const {
   return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
@@ -22,6 +25,12 @@ std::string AstUnaryOpNode::toString() const {
 }
 AstNodeType AstUnaryOpNode::getAstNodeType() const {
   return UNARY;
+}
+TokenType AstUnaryOpNode::getTokenType() const {
+  return op;
+}
+AstNode* AstUnaryOpNode::getChild() {
+  return child;
 }
 
 std::string AstBinaryOpNode::toString() const {
@@ -31,6 +40,15 @@ std::string AstBinaryOpNode::toString() const {
 }
 AstNodeType AstBinaryOpNode::getAstNodeType() const {
   return BINARY;
+}
+TokenType AstBinaryOpNode::getTokenType() const {
+  return op;
+}
+AstNode* AstBinaryOpNode::getLeftChild() {
+  return leftChild;
+}
+AstNode* AstBinaryOpNode::getRightChild() {
+  return rightChild;
 }
 
 std::string AstGroupNode::toString() const {
@@ -42,6 +60,9 @@ std::string AstGroupNode::toString() const {
 }
 AstNodeType AstGroupNode::getAstNodeType() const {
   return GROUP;
+}
+AstNode* AstGroupNode::getChild() {
+  return child;
 }
 
 
@@ -168,3 +189,6 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
   return outputLine.top();
   
 }
+
+
+

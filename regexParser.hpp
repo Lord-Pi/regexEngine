@@ -1,5 +1,5 @@
 #ifndef __REGEX_PARSER_H_
-#define __REGEX_PARSER_H
+#define __REGEX_PARSER_H_
 
 #include "tokenizerParserTypes.hpp"
 #include "regexTokenizer.hpp"
@@ -12,6 +12,7 @@
 class AstNode {
 public:
   virtual std::string toString() const = 0;
+  virtual AstNodeType getAstNodeType() const = 0;
 };
 
 class AstCharacterNode : public AstNode {
@@ -21,6 +22,7 @@ public:
   AstCharacterNode(RegexToken* tkn) : tkn(tkn) {}
   std::string toString() const;
   AstNodeType getAstNodeType() const;
+  RegexToken* getToken();
 };
 
 class AstUnaryOpNode : public AstNode {
@@ -32,6 +34,8 @@ public:
 						 op(op) {}
   std::string toString() const;
   AstNodeType getAstNodeType() const;
+  TokenType getTokenType() const;
+  AstNode* getChild();
 };
 
 class AstBinaryOpNode : public AstNode {
@@ -45,6 +49,9 @@ public:
 									   op(op) {}
   std::string toString() const;
   AstNodeType getAstNodeType() const;
+  TokenType getTokenType() const;
+  AstNode* getLeftChild();
+  AstNode* getRightChild();
 };
 
 class AstGroupNode : public AstNode {
@@ -56,6 +63,7 @@ public:
 						 capturing(capturing) {}
   std::string toString() const;
   AstNodeType getAstNodeType() const;
+  AstNode* getChild();
 };
 
 
