@@ -8,11 +8,15 @@
 #include <vector>
 
 
+OpenParenToken::OpenParenToken(int groupCount) : groupCount(groupCount) {}
 TokenType OpenParenToken::get_token_type() const {
   return OPENPAREN;
 }
 std::string OpenParenToken::get_str_rep() const {
-  return "(";
+  return "<G" + std::to_string(groupCount) + ">(";
+}
+int OpenParenToken::getGroupCount() const {
+  return groupCount;
 }
 
 TokenType NonCaptOpenParenToken::get_token_type() const {
@@ -94,6 +98,7 @@ std::string WildCharToken::get_str_rep() const {
 }
 
 std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
+  int groupCount = 1;
   std::vector<RegexToken*> v;
   for(std::string::iterator it = s.begin(); it != s.end(); ++it) {
     switch(*it) {
@@ -103,7 +108,7 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
 	  v.push_back(new NonCaptOpenParenToken());
 	  it += 2;
 	} else {
-	  v.push_back(new OpenParenToken());
+	  v.push_back(new OpenParenToken(groupCount++));
 	}
 	break;
       }

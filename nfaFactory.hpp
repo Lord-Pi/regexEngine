@@ -8,7 +8,6 @@
 
 class NFAFactory {
 private:
-  int groupTracker;
   int stateNameTracker;
 
 public:

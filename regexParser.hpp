@@ -58,19 +58,22 @@ class AstGroupNode : public AstNode {
 private:
   AstNode* child;
   bool capturing;
+  int groupNum;
 public:
-  AstGroupNode(AstNode* child, bool capturing) : child(child),
-						 capturing(capturing) {}
+  AstGroupNode(AstNode* child, bool capturing, int groupNum) : child(child),
+							       capturing(capturing),
+							       groupNum(groupNum) {}
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   AstNode* getChild();
+  int getGroupNum() const;
 };
 
 
 class RegexParser {
 private:
   static int getOperatorPrecedence(TokenType op);
-  static void applyOperatorToStack(std::stack<AstNode*> &s, TokenType op);
+  static void applyOperatorToStack(std::stack<AstNode*> &s, TokenType op, int groupNum);
   static void shuntingYardInternal(std::stack<AstNode*> &outputLine,
 				   std::stack<RegexToken*> &operatorStandby,
 				   RegexToken* &tok);

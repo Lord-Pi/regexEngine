@@ -64,6 +64,9 @@ AstNodeType AstGroupNode::getAstNodeType() const {
 AstNode* AstGroupNode::getChild() {
   return child;
 }
+int AstGroupNode::getGroupNum() const {
+  return groupNum;
+}
 
 
 int RegexParser::getOperatorPrecedence(TokenType op) {
@@ -85,14 +88,16 @@ int RegexParser::getOperatorPrecedence(TokenType op) {
   }
 }
 
-void RegexParser::applyOperatorToStack(std::stack<AstNode*> &s, TokenType op) {
+void RegexParser::applyOperatorToStack(std::stack<AstNode*> &s, TokenType op, int groupNum) {
   switch(op) {
   case OPENPAREN:
   case NONCAPOPENPAREN:
     {
       AstNode* inner = s.top();
       s.pop();
-      AstGroupNode* newTop = new AstGroupNode(inner, op==OPENPAREN);
+      std::cout << "Group num inside applyOperatorToStack:" << std::endl;
+      std::cout << groupNum << std::endl;
+      AstGroupNode* newTop = new AstGroupNode(inner, op==OPENPAREN, groupNum);
       s.push(newTop);
       break;
     }
@@ -141,13 +146,24 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
   case CLOSEPAREN:
     {
       do {
-	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type());
+	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), -1);
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
 	free(used);
       } while((!operatorStandby.empty()) &&
 	      (operatorStandby.top())->get_token_type() != OPENPAREN &&
 	      (operatorStandby.top())->get_token_type() != NONCAPOPENPAREN);
+      
+      int groupNum = -1;
+      if((operatorStandby.top())->get_token_type() == OPENPAREN) {
+	std::cout << "Found real group" << std::endl;
+	groupNum = (static_cast<OpenParenToken*>(operatorStandby.top()))->getGroupCount();
+	std::cout << groupNum << std::endl;
+      }
+      applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), groupNum);
+      RegexToken* used = operatorStandby.top();
+      operatorStandby.pop();
+      free(used);
       break;
     }
   default:
@@ -156,7 +172,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
 	    (operatorStandby.top())->get_token_type() != OPENPAREN &&
 	    (operatorStandby.top())->get_token_type() != NONCAPOPENPAREN &&
 	    getOperatorPrecedence((operatorStandby.top())->get_token_type()) >= getOperatorPrecedence(tok->get_token_type())) {
-	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type());
+	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), -1);
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
 	free(used);
@@ -178,10 +194,14 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
       ++it) {
     shuntingYardInternal(outputLine, operatorStandby, *it);
   }
+  
   while(!operatorStandby.empty()) {
     RegexToken* nextTok = operatorStandby.top();
+    std::cout << nextTok->get_str_rep() << std::endl;
     operatorStandby.pop();
-    applyOperatorToStack(outputLine, nextTok->get_token_type());
+    // Since we should have already seen all the open parens,
+    // I think I can just ignore group numbers here?
+    applyOperatorToStack(outputLine, nextTok->get_token_type(), -1);
   }
 
   assert(outputLine.size() == 1);

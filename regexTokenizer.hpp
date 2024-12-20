@@ -14,9 +14,13 @@ public:
 };
 
 class OpenParenToken : public RegexToken {
+private:
+  int groupCount;
 public:
+  OpenParenToken(int groupCount);
   TokenType get_token_type() const;
   std::string get_str_rep() const;
+  int getGroupCount() const;
 };
 
 class NonCaptOpenParenToken : public RegexToken {

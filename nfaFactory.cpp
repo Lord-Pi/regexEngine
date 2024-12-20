@@ -4,12 +4,13 @@
 #include "regexTokenizer.hpp"
 #include "tokenizerParserTypes.hpp"
 
+
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 
 NFAFactory::NFAFactory() {
-  groupTracker = 0;
   stateNameTracker = 0;
 }
 
@@ -84,8 +85,9 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
       default:
 	throw std::invalid_argument("Got a unary operation of an invalid type");
       }
-      for(std::vector<State*>::iterator it = inner->getStates().begin();
-	  it != inner->getStates().end();
+      std::vector<State*> innerStates = inner->getStates();
+      for(std::vector<State*>::iterator it = innerStates.begin();
+	  it != innerStates.end();
 	  ++it) {
 	outer->addState(*it);
       }
@@ -107,11 +109,11 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 					    outer->getStates()[outer->getEndStateIdx()]);
       outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
       innerRight->getStates()[innerRight->getEndStateIdx()]->addTransition(epsilon2);
-
+      
       Transition* epsilon3 = new Transition("",
 					    false,
 					    innerRight->getStates()[innerRight->getStartStateIdx()]);
-      
+
       switch(binaryAst->getTokenType()) {
       case ALTERNATOR:
 	{
@@ -131,19 +133,23 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 	throw std::invalid_argument("Got a binary operation of an invalid type");
       }
 
-      for(std::vector<State*>::iterator it = innerLeft->getStates().begin();
-	  it != innerLeft->getStates().end();
+      std::vector<State*> leftStates = innerLeft->getStates();
+      for(std::vector<State*>::iterator it = leftStates.begin();
+	  it != leftStates.end();
 	  ++it) {
 	outer->addState(*it);
       }
-      for(std::vector<State*>::iterator jt = innerRight->getStates().begin();
-	  jt != innerRight->getStates().end();
+
+      std::vector<State*> rightStates = innerRight->getStates();
+      for(std::vector<State*>::iterator jt = rightStates.begin();
+	  jt != rightStates.end();
 	  ++jt) {
 	outer->addState(*jt);
       }
 
       delete innerLeft;
       delete innerRight;
+
       return outer;
     }
   case GROUP:
@@ -151,16 +157,22 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
       AstGroupNode* groupAst = dynamic_cast<AstGroupNode*>(ast);
       NFA* inner = recursiveCreateNFA(groupAst->getChild());
       NFA* outer = new NFA(startStateLabel, endStateLabel);
+      int groupNum = groupAst->getGroupNum();
       Transition* epsilon1 = new Transition("",
 					    false,
 					    inner->getStates()[inner->getStartStateIdx()]);
+      if(groupNum >= 0)
+	epsilon1->addGroupStart(groupNum);
       Transition* epsilon2 = new Transition("",
 					    false,
 					    outer->getStates()[outer->getEndStateIdx()]);
+      if(groupNum >= 0)
+	epsilon2->addGroupEnd(groupNum);
       outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
       inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
-      for(std::vector<State*>::iterator it = inner->getStates().begin();
-	  it != inner->getStates().end();
+      std::vector<State*> innerStates = inner->getStates();
+      for(std::vector<State*>::iterator it = innerStates.begin();
+	  it != innerStates.end();
 	  ++it) {
 	outer->addState(*it);
       }

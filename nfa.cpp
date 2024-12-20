@@ -52,6 +52,24 @@ std::string Transition::printableForm() {
   }
   printable.append(" -> ");
   printable.append(destination->getLabel());
+  if(groupStarts.size() > 0) {
+    printable.append(" START ");
+    for(std::vector<int>::iterator it = groupStarts.begin();
+	it != groupStarts.end();
+	++it) {
+      printable.append(std::to_string(*it));
+      printable.append(", ");
+    }
+  }
+  if(groupEnds.size() > 0) {
+    printable.append(" END ");
+    for(std::vector<int>::iterator it = groupEnds.begin();
+	it != groupEnds.end();
+	++it) {
+      printable.append(std::to_string(*it));
+      printable.append(", ");
+    }
+  }
   return printable;
 }
 

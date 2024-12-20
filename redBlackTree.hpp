@@ -327,13 +327,13 @@ bool RedBlackNode<T>::find(T val) {
 template <typename T>
 void RedBlackNode<T>::traverseInOrder(std::string delim) const {
   if(getLeft() != nullptr) getLeft()->traverseInOrder(delim);
-  std::cout << getValue() << delim;
+  //  std::cout << getValue() << delim;
   if(getRight() != nullptr) getRight()->traverseInOrder(delim);
 }
 
 template <typename T>
 void RedBlackNode<T>::traversePreOrder(std::string delim) const {
-  std::cout << getValue() << delim;
+  //  std::cout << getValue() << delim;
   if(getLeft() != nullptr) getLeft()->traversePreOrder(delim);
   if(getRight() != nullptr) getRight()->traversePreOrder(delim);
 }

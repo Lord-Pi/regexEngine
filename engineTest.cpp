@@ -13,6 +13,7 @@
 int main(int argc, char *argv[]) {
   std::string testRegex = "[abc].[^def][]][^]].(a|b|.)+a?|c";
   testRegex = "(0+|1+|23+)";
+
   
   std::vector<RegexToken*> v = RegexTokenizer::stringToTokensPass(testRegex);
 
@@ -35,7 +36,7 @@ int main(int argc, char *argv[]) {
   std::cout << std::endl;
 
   AstNode* treeRoot = RegexParser::shuntingYard(v2);
-  std::cout << treeRoot->toString() << std::endl;
+  // std::cout << treeRoot->toString() << std::endl;
 
   NFAFactory factory;
   NFA* nfa = factory.recursiveCreateNFA(treeRoot);
