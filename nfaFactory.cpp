@@ -1,3 +1,4 @@
+
 #include "nfa.hpp"
 #include "nfaFactory.hpp"
 #include "regexParser.hpp"
@@ -181,5 +182,29 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
     }
   default:
     throw std::invalid_argument("Somehow got an AST node type that does not exist");
+  }
 }
+
+NFA* NFAFactory::createNFA(AstNode* ast) {
+  NFA* inner = recursiveCreateNFA(ast);
+  NFA* outer = new NFA("S_BEGIN", "S_END");
+  Transition* epsilon1 = new Transition("",
+					false,
+					inner->getStates()[inner->getStartStateIdx()]);
+  epsilon1->addGroupStart(0);
+  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
+  Transition* epsilon2 = new Transition("",
+					false,
+					outer->getStates()[outer->getEndStateIdx()]);
+  epsilon2->addGroupEnd(0);
+  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+  
+  std::vector<State*> innerStates = inner->getStates();
+  for(std::vector<State*>::iterator it = innerStates.begin();
+      it != innerStates.end();
+      ++it) {
+    outer->addState(*it);
+  }
+  delete inner;
+  return outer;
 }

@@ -95,8 +95,6 @@ void RegexParser::applyOperatorToStack(std::stack<AstNode*> &s, TokenType op, in
     {
       AstNode* inner = s.top();
       s.pop();
-      std::cout << "Group num inside applyOperatorToStack:" << std::endl;
-      std::cout << groupNum << std::endl;
       AstGroupNode* newTop = new AstGroupNode(inner, op==OPENPAREN, groupNum);
       s.push(newTop);
       break;
@@ -156,9 +154,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
       
       int groupNum = -1;
       if((operatorStandby.top())->get_token_type() == OPENPAREN) {
-	std::cout << "Found real group" << std::endl;
 	groupNum = (static_cast<OpenParenToken*>(operatorStandby.top()))->getGroupCount();
-	std::cout << groupNum << std::endl;
       }
       applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), groupNum);
       RegexToken* used = operatorStandby.top();
@@ -197,7 +193,6 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
   
   while(!operatorStandby.empty()) {
     RegexToken* nextTok = operatorStandby.top();
-    std::cout << nextTok->get_str_rep() << std::endl;
     operatorStandby.pop();
     // Since we should have already seen all the open parens,
     // I think I can just ignore group numbers here?

@@ -3,6 +3,7 @@
 
 #include "characterClass.hpp"
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
@@ -18,18 +19,18 @@ private:
   std::string label;
   std::optional<CharacterClassDecider> ccd_o;
   State* destination;
-  std::vector<int> groupStarts;
-  std::vector<int> groupEnds;
+  std::vector<size_t> groupStarts;
+  std::vector<size_t> groupEnds;
 
 public:
   Transition(std::string label, bool inverted, State* destination);
   bool isEpsilon() const;
   State* getDestination() const;
-  bool characterMatches(std::string s, int idx);
-  void addGroupStart(int i);
-  void addGroupEnd(int i);
-  std::vector<int> getGroupStarts();
-  std::vector<int> getGroupEnds();
+  bool characterMatches(std::string s, size_t idx);
+  void addGroupStart(size_t i);
+  void addGroupEnd(size_t i);
+  std::vector<size_t> getGroupStarts();
+  std::vector<size_t> getGroupEnds();
   std::string printableForm();
 };
 
@@ -56,19 +57,40 @@ public:
 };
 
 
+class ExecutionMemoryObject {
+private:
+  State* currentState;
+  size_t stringIdx;
+  std::vector<bool> groupRecording;
+  std::vector<std::string> groupContents;
+  std::vector<State*> epsilonLoopTracker;
+  
+public:
+  ExecutionMemoryObject(State* startState, size_t stringStartIdx, size_t groupCount);
+  ExecutionMemoryObject(const ExecutionMemoryObject &emo);
+
+  void applyTransition(std::string str, Transition* t);
+  bool isStateInEpsilonLoop(State* s);
+};
+
+
 class NFA {
 private:
   std::vector<State*> states;
-  int startStateIdx;
-  int endStateIdx;
+  size_t startStateIdx;
+  size_t endStateIdx;
+
+  size_t getGroupCount();
   
 public:
   NFA(std::string l1, std::string l2);
   std::vector<State*> getStates();
-  int getStartStateIdx() const;
-  int getEndStateIdx() const;
+  size_t getStartStateIdx() const;
+  size_t getEndStateIdx() const;
   void addState(State* s);
   std::string printableForm();
+  std::vector<std::string> engineMatch(std::string input, size_t stringStartIdx);
+  
 };
 
 

@@ -9,10 +9,12 @@
 class NFAFactory {
 private:
   int stateNameTracker;
-
+  NFA* recursiveCreateNFA(AstNode* ast);
+  
 public:
   NFAFactory();
-  NFA* recursiveCreateNFA(AstNode* ast);
+  NFA* createNFA(AstNode* ast);
+
 };
 
 
