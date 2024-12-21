@@ -1,4 +1,5 @@
 CC=g++
+CCFLAGS = 
 
 DEPS = *.hpp
 
@@ -8,16 +9,18 @@ regexTokenizer.o tokenizerParserTypes.o engineTest.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
+all: engineTest
+
+debug: CCFLAGS += -g
+debug: engineTest
+
 $(ODIR)/%.o: %.cpp $(DEPS)
-	$(CC) -c -o $@ $<
+	$(CC) -c -o $@ $(CCFLAGS) $<
 
 engineTest: $(OBJ)
-	$(CC) -o $@ $^
-
-engineTestDebug: $(OBJ)
-	$(CC) -Og -o $@ $^
+	$(CC) -o $@ $(CCFLAGS) $^
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o engineTest
+	rm -f $(ODIR)/*.o engineTest engineTestDebug

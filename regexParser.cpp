@@ -143,14 +143,14 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
     }
   case CLOSEPAREN:
     {
-      do {
+      while((!operatorStandby.empty()) &&
+	    (operatorStandby.top())->get_token_type() != OPENPAREN &&
+	    (operatorStandby.top())->get_token_type() != NONCAPOPENPAREN) {
 	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), -1);
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
 	free(used);
-      } while((!operatorStandby.empty()) &&
-	      (operatorStandby.top())->get_token_type() != OPENPAREN &&
-	      (operatorStandby.top())->get_token_type() != NONCAPOPENPAREN);
+      } 
       
       int groupNum = -1;
       if((operatorStandby.top())->get_token_type() == OPENPAREN) {

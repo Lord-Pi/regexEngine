@@ -246,7 +246,7 @@ size_t NFA::getGroupCount() {
 	std::vector<size_t>::iterator ft = std::find(groupBegins.begin(),
 						     groupBegins.end(),
 						     *kt);
-	if(ft != groupBegins.end()) {
+	if(ft == groupBegins.end()) {
 	  groupBegins.push_back(*kt);
 	}
       }
@@ -257,7 +257,7 @@ size_t NFA::getGroupCount() {
 	std::vector<size_t>::iterator ft = std::find(groupEnds.begin(),
 						     groupEnds.end(),
 						     *kt);
-	if(ft != groupEnds.end()) {
+	if(ft == groupEnds.end()) {
 	  groupEnds.push_back(*kt);
 	}
       }      
