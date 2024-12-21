@@ -14,6 +14,9 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 engineTest: $(OBJ)
 	$(CC) -o $@ $^
 
+engineTestDebug: $(OBJ)
+	$(CC) -Og -o $@ $^
+
 .PHONY: clean
 
 clean:

@@ -71,6 +71,9 @@ public:
 
   void applyTransition(std::string str, Transition* t);
   bool isStateInEpsilonLoop(State* s);
+  State* getCurrentState() const;
+  size_t getStringIdx() const;
+  std::vector<std::string> getGroupContents() const;
 };
 
 

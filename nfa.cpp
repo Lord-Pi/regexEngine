@@ -185,6 +185,16 @@ bool ExecutionMemoryObject::isStateInEpsilonLoop(State* s) {
 					       s);
 }
 
+State* ExecutionMemoryObject::getCurrentState() const {
+  return currentState;
+}
+size_t ExecutionMemoryObject::getStringIdx() const {
+  return stringIdx;
+}
+std::vector<std::string> ExecutionMemoryObject::getGroupContents() const {
+  return groupContents;
+}
+
 
 
 
@@ -275,6 +285,30 @@ std::vector<std::string> NFA::engineMatch(std::string input, size_t stringStartI
   
   std::stack<ExecutionMemoryObject> backtrackStack;
   backtrackStack.emplace(states[startStateIdx], stringStartIdx, getGroupCount());
+
+  while(!backtrackStack.empty()) {
+    ExecutionMemoryObject snapshot = backtrackStack.top();
+    backtrackStack.pop();
+
+    State* s = snapshot.getCurrentState();
+    if(s == states[endStateIdx]) {
+      return snapshot.getGroupContents();
+    }
+
+    size_t stringIdx = snapshot.getStringIdx();
+    std::vector<Transition*> stateTransitions = s->getTransitions();
+    for(std::vector<Transition*>::iterator it = stateTransitions.begin();
+	it != stateTransitions.end();
+	++it) {
+      if((*it)->characterMatches(input, stringIdx)) {
+	backtrackStack.emplace(snapshot);
+	backtrackStack.top().applyTransition(input, *it);
+      }
+    }
+    
+  }
+
+  
 
   return output;
 }

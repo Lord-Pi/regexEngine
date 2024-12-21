@@ -13,6 +13,8 @@
 int main(int argc, char *argv[]) {
   std::string testRegex = "[abc].[^def][]][^]].(a|b|.)+a?|c";
   testRegex = "(0+|1+|23+)";
+  testRegex = "([abc])([abc])([abc])";
+  testRegex = "[abc]";
 
   
   std::vector<RegexToken*> v = RegexTokenizer::stringToTokensPass(testRegex);
@@ -42,4 +44,6 @@ int main(int argc, char *argv[]) {
   NFA* nfa = factory.createNFA(treeRoot);
 
   std::cout << nfa->printableForm() << std::endl;
+
+  //std::vector<std::string> matchOutput = nfa->engineMatch("abc", 0);
 }
