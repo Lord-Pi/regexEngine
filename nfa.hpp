@@ -43,6 +43,7 @@ private:
 
 public:
   State(std::string label, bool isAccepting);
+  ~State();
   
   bool getIsAccepting() const;
   void setIsAccepting(bool b);
@@ -62,18 +63,18 @@ private:
   State* currentState;
   size_t stringIdx;
   std::vector<bool> groupRecording;
-  std::vector<std::string> groupContents;
+  std::vector<std::vector<size_t>> groupContents;
   std::vector<State*> epsilonLoopTracker;
   
 public:
   ExecutionMemoryObject(State* startState, size_t stringStartIdx, size_t groupCount);
   ExecutionMemoryObject(const ExecutionMemoryObject &emo);
 
-  void applyTransition(std::string str, Transition* t);
+  void applyTransition(Transition* t);
   bool isStateInEpsilonLoop(State* s);
   State* getCurrentState() const;
   size_t getStringIdx() const;
-  std::vector<std::string> getGroupContents() const;
+  std::vector<std::vector<size_t>> getGroupContents() const;
 };
 
 
@@ -87,12 +88,14 @@ private:
   
 public:
   NFA(std::string l1, std::string l2);
+  ~NFA();
   std::vector<State*> getStates();
   size_t getStartStateIdx() const;
   size_t getEndStateIdx() const;
   void addState(State* s);
+  void clearStates();
   std::string printableForm();
-  std::vector<std::string> engineMatch(std::string input, size_t stringStartIdx);
+  std::vector<std::vector<size_t>> engineMatch(std::string input, size_t stringStartIdx);
   
 };
 

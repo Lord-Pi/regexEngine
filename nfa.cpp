@@ -82,6 +82,13 @@ State::State(std::string label, bool isAccepting) {
   this->label = label;
   this->isAccepting = isAccepting;
 }
+State::~State() {
+  for(std::vector<Transition*>::iterator it = transitions.begin();
+      it != transitions.end();
+      ++it) {
+    delete (*it);
+  }
+}
 
 
 bool State::getIsAccepting() const {
@@ -130,7 +137,9 @@ ExecutionMemoryObject::ExecutionMemoryObject(State* startState,
   groupContents.clear();
   for(size_t i = 0; i < groupCount; i++) {
     groupRecording.push_back(false);
-    groupContents.push_back("");
+    std::vector<size_t> recordingRow;
+    recordingRow.clear();
+    groupContents.push_back(recordingRow);
   }
   epsilonLoopTracker.clear();
 }
@@ -143,7 +152,7 @@ ExecutionMemoryObject::ExecutionMemoryObject(const ExecutionMemoryObject &emo) {
   epsilonLoopTracker = emo.epsilonLoopTracker;
 }
 
-void ExecutionMemoryObject::applyTransition(std::string str, Transition* t) {
+void ExecutionMemoryObject::applyTransition(Transition* t) {
   currentState = t->getDestination();
 
   // First enable new groups, then consume input, then disable old groups.
@@ -162,12 +171,12 @@ void ExecutionMemoryObject::applyTransition(std::string str, Transition* t) {
   if(t->isEpsilon()) {
     epsilonLoopTracker.push_back(currentState);
   } else {
-    char consumedChar = str[stringIdx++];
     for(size_t i = 0; i < groupRecording.size(); i++) {
       if(groupRecording[i]) {
-	groupContents[i].append(1, consumedChar);
+	groupContents[i].push_back(stringIdx);
       }
     }
+    stringIdx++;
   }
 
   std::vector<size_t> groupEnds = t->getGroupEnds();
@@ -191,7 +200,7 @@ State* ExecutionMemoryObject::getCurrentState() const {
 size_t ExecutionMemoryObject::getStringIdx() const {
   return stringIdx;
 }
-std::vector<std::string> ExecutionMemoryObject::getGroupContents() const {
+std::vector<std::vector<size_t>> ExecutionMemoryObject::getGroupContents() const {
   return groupContents;
 }
 
@@ -206,6 +215,13 @@ NFA::NFA(std::string l1, std::string l2) {
   states.push_back(new State(l2, true));
   endStateIdx = 1;
 }
+NFA::~NFA() {
+  for(std::vector<State*>::iterator it = states.begin();
+      it != states.end();
+      ++it) {
+    delete (*it);
+  }
+}
 
 std::vector<State*> NFA::getStates() {
   return states;
@@ -218,6 +234,9 @@ size_t NFA::getEndStateIdx() const {
 }
 void NFA::addState(State* s) {
   states.push_back(s);
+}
+void NFA::clearStates() {
+  states.clear();
 }
 std::string NFA::printableForm() {
   std::string printable;
@@ -280,8 +299,8 @@ size_t NFA::getGroupCount() {
   return groupEnds.size();
 }
 
-std::vector<std::string> NFA::engineMatch(std::string input, size_t stringStartIdx) {
-  std::vector<std::string> output;
+std::vector<std::vector<size_t>> NFA::engineMatch(std::string input, size_t stringStartIdx) {
+  std::vector<std::vector<size_t>> output;
   
   std::stack<ExecutionMemoryObject> backtrackStack;
   backtrackStack.emplace(states[startStateIdx], stringStartIdx, getGroupCount());
@@ -302,7 +321,7 @@ std::vector<std::string> NFA::engineMatch(std::string input, size_t stringStartI
 	++it) {
       if((*it)->characterMatches(input, stringIdx)) {
 	backtrackStack.emplace(snapshot);
-	backtrackStack.top().applyTransition(input, *it);
+	backtrackStack.top().applyTransition(*it);
       }
     }
     

@@ -9,6 +9,9 @@
 #include <vector>
 
 
+AstCharacterNode::~AstCharacterNode() {
+  delete tkn;
+}
 std::string AstCharacterNode::toString() const {
   return "CHAR(" + tkn->get_str_rep() + ")";
 }
@@ -19,6 +22,9 @@ RegexToken* AstCharacterNode::getToken() {
   return tkn;
 }
 
+AstUnaryOpNode::~AstUnaryOpNode() {
+  delete child;
+}
 std::string AstUnaryOpNode::toString() const {
   return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
     child->toString() + ")";
@@ -33,6 +39,10 @@ AstNode* AstUnaryOpNode::getChild() {
   return child;
 }
 
+AstBinaryOpNode::~AstBinaryOpNode() {
+  delete leftChild;
+  delete rightChild;
+}
 std::string AstBinaryOpNode::toString() const {
   return TokenTypeMethods::tokenTypeToLongString(op) + "(" +
     leftChild->toString() + ", " +
@@ -51,6 +61,9 @@ AstNode* AstBinaryOpNode::getRightChild() {
   return rightChild;
 }
 
+AstGroupNode::~AstGroupNode() {
+  delete child;
+}
 std::string AstGroupNode::toString() const {
   if(capturing) {
     return "CAPTUREGROUP(" + child->toString() + ")";
@@ -149,7 +162,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
 	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), -1);
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
-	free(used);
+	delete used;
       } 
       
       int groupNum = -1;
@@ -159,7 +172,8 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
       applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), groupNum);
       RegexToken* used = operatorStandby.top();
       operatorStandby.pop();
-      free(used);
+      delete used;
+      delete tok;
       break;
     }
   default:
@@ -171,7 +185,7 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
 	applyOperatorToStack(outputLine, (operatorStandby.top())->get_token_type(), -1);
 	RegexToken* used = operatorStandby.top();
 	operatorStandby.pop();
-	free(used);
+	delete used;
       }
       operatorStandby.push(tok);
     }
@@ -197,6 +211,9 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
     // Since we should have already seen all the open parens,
     // I think I can just ignore group numbers here?
     applyOperatorToStack(outputLine, nextTok->get_token_type(), -1);
+
+    // Delete used operators here otherwise they are lost forever
+    delete nextTok;
   }
 
   assert(outputLine.size() == 1);

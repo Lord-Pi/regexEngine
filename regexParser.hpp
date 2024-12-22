@@ -11,6 +11,7 @@
 
 class AstNode {
 public:
+  virtual ~AstNode() {}
   virtual std::string toString() const = 0;
   virtual AstNodeType getAstNodeType() const = 0;
 };
@@ -20,6 +21,7 @@ private:
   RegexToken* tkn;
 public:
   AstCharacterNode(RegexToken* tkn) : tkn(tkn) {}
+  ~AstCharacterNode();
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   RegexToken* getToken();
@@ -32,6 +34,7 @@ private:
 public:
   AstUnaryOpNode(AstNode* child, TokenType op) : child(child),
 						 op(op) {}
+  ~AstUnaryOpNode();
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   TokenType getTokenType() const;
@@ -47,6 +50,7 @@ public:
   AstBinaryOpNode(AstNode* leftChild, AstNode* rightChild, TokenType op) : leftChild(leftChild),
 									   rightChild(rightChild),
 									   op(op) {}
+  ~AstBinaryOpNode();
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   TokenType getTokenType() const;
@@ -63,6 +67,7 @@ public:
   AstGroupNode(AstNode* child, bool capturing, int groupNum) : child(child),
 							       capturing(capturing),
 							       groupNum(groupNum) {}
+  ~AstGroupNode();
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   AstNode* getChild();

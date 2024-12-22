@@ -26,7 +26,8 @@ private:
 
 public:
   RedBlackNode(T t);
-
+  ~RedBlackNode();
+  
   RedBlackNode<T>* getParent() const;
   RedBlackNode<T>* getLeft() const;
   RedBlackNode<T>* getRight() const;
@@ -57,6 +58,7 @@ private:
 public:
   RedBlackTree();
   RedBlackTree(T t);
+  ~RedBlackTree();
   void redBlackInsert(T val);
   void redBlackUniqueInsert(T val);
   bool find(T val) const;
@@ -74,6 +76,12 @@ RedBlackNode<T>::RedBlackNode(T t) {
   right = nullptr;
   value = t;
   isRed = true;
+}
+
+template <typename T>
+RedBlackNode<T>::~RedBlackNode() {
+  delete left;
+  delete right;
 }
 
 template <typename T>
@@ -351,6 +359,11 @@ template <typename T>
 RedBlackTree<T>::RedBlackTree(T t) {
   root = nullptr;
   redBlackInsert(t);
+}
+
+template <typename T>
+RedBlackTree<T>::~RedBlackTree() {
+  delete root;
 }
 
 template <typename T>

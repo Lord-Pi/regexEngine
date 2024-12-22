@@ -19,10 +19,10 @@ NFAFactory::NFAFactory() {
 NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
   std::string startStateLabel = "S"+std::to_string(stateNameTracker++);
   std::string endStateLabel = "S"+std::to_string(stateNameTracker++);
-  NFA* newNFA = new NFA(startStateLabel, endStateLabel);
   switch(ast->getAstNodeType()) {
   case CHARACTER:
     {
+      NFA* newNFA = new NFA(startStateLabel, endStateLabel);
       AstCharacterNode* charAst = dynamic_cast<AstCharacterNode*>(ast);
       if(charAst->getToken()->get_token_type() == WILDCHAR) {
 	Transition* wildTransition = new Transition("\n",
@@ -37,6 +37,7 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 						     newNFA->getStates()[newNFA->getEndStateIdx()]);
 	newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(classTransition);
       }
+      delete charAst;
       return newNFA;
     }
   case UNARY:
@@ -92,6 +93,7 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 	  ++it) {
 	outer->addState(*it);
       }
+      inner->clearStates();
       delete inner;
       return outer;
     }
@@ -148,6 +150,8 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 	outer->addState(*jt);
       }
 
+      innerLeft->clearStates();
+      innerRight->clearStates();
       delete innerLeft;
       delete innerRight;
 
@@ -177,6 +181,7 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 	  ++it) {
 	outer->addState(*it);
       }
+      inner->clearStates();
       delete inner;
       return outer;
     }
@@ -205,6 +210,7 @@ NFA* NFAFactory::createNFA(AstNode* ast) {
       ++it) {
     outer->addState(*it);
   }
+  inner->clearStates();
   delete inner;
   return outer;
 }

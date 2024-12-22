@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "homebrewRegex.hpp"
 #include "tokenizerParserTypes.hpp"
 #include "regexParser.hpp"
 #include "regexTokenizer.hpp"
@@ -15,7 +16,21 @@ int main(int argc, char *argv[]) {
   testRegex = "(0+|1+|23+)";
   testRegex = "([abc])([abc])([abc])";
   //testRegex = "([abc])";
+  //testRegex = "a";
+  testRegex = "([0-9])";
 
+
+  RegexEngine re;
+  RegexEngine::compile(re, testRegex);
+  RegexMatch m;
+  re.match(m, "a");
+  std::cout << m.getNumGroups() << std::endl;
+  for(size_t i = 0; i < m.getNumGroups(); i++) {
+    std::cout << m.getGroup(i) << std::endl;
+  }
+
+  
+  /*
   
   std::vector<RegexToken*> v = RegexTokenizer::stringToTokensPass(testRegex);
 
@@ -45,11 +60,22 @@ int main(int argc, char *argv[]) {
 
   //  std::cout << nfa->printableForm() << std::endl;
 
-  std::vector<std::string> matchOutput = nfa->engineMatch("abc", 0);
+  std::vector<std::vector<size_t>> matchOutput = nfa->engineMatch("abc", 0);
   std::cout << matchOutput.size() << std::endl;
-  for(std::vector<std::string>::iterator it = matchOutput.begin();
+  for(std::vector<std::vector<size_t>>::iterator it = matchOutput.begin();
       it != matchOutput.end();
       ++it) {
-    std::cout << *it << std::endl;
+    std::vector<size_t> inner = *it;
+    for(std::vector<size_t>::iterator jt = inner.begin();
+	jt != inner.end();
+	++jt) {
+      std::cout << *jt << " ";
+    }
+    std::cout << std::endl;
   }
+  
+
+  delete nfa;
+
+  */
 }

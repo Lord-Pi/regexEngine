@@ -5,7 +5,7 @@ DEPS = *.hpp
 
 ODIR=obj
 _OBJ=characterClass.o nfa.o nfaFactory.o regexParser.o \
-regexTokenizer.o tokenizerParserTypes.o engineTest.o
+regexTokenizer.o tokenizerParserTypes.o homebrewRegex.o engineTest.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
