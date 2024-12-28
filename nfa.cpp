@@ -1,10 +1,12 @@
 #include "nfa.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <optional>
 #include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 
@@ -51,6 +53,14 @@ std::string Transition::printableForm() {
     printable.append("\u03B5");
   } else {
     printable.append(label);
+    printable.append(" (");
+    for(std::string::iterator it = label.begin();
+	it != label.end();
+	++it) {
+      printable.append(std::to_string((unsigned int)(*it)));
+      printable.append(" ");
+    }
+    printable.append(")");
   }
   printable.append(" -> ");
   printable.append(destination->getLabel());
@@ -135,7 +145,11 @@ ExecutionMemoryObject::ExecutionMemoryObject(State* startState,
   stringIdx = stringStartIdx;
   groupRecording.clear();
   groupContents.clear();
+  groupStarts.clear();
+  groupEnds.clear();
   for(size_t i = 0; i < groupCount; i++) {
+    groupStarts.push_back(0);
+    groupEnds.push_back(0);
     groupRecording.push_back(false);
     std::vector<size_t> recordingRow;
     recordingRow.clear();
@@ -149,6 +163,8 @@ ExecutionMemoryObject::ExecutionMemoryObject(const ExecutionMemoryObject &emo) {
   stringIdx = emo.stringIdx;
   groupRecording = emo.groupRecording;
   groupContents = emo.groupContents;
+  groupStarts = emo.groupStarts;
+  groupEnds = emo.groupEnds;
   epsilonLoopTracker = emo.epsilonLoopTracker;
 }
 
@@ -161,11 +177,12 @@ void ExecutionMemoryObject::applyTransition(Transition* t) {
   // In this case, that one transition needs to enable groups, consume the a,
   // then disable groups. No idea if this logic generalizes, YMMV.
 
-  std::vector<size_t> groupStarts = t->getGroupStarts();
-  for(std::vector<size_t>::iterator it = groupStarts.begin();
-      it != groupStarts.end();
+  std::vector<size_t> tGroupStarts = t->getGroupStarts();
+  for(std::vector<size_t>::iterator it = tGroupStarts.begin();
+      it != tGroupStarts.end();
       ++it) {
     groupRecording[*it] = true;
+    groupStarts[*it] = stringIdx;
   }
   
   if(t->isEpsilon()) {
@@ -179,11 +196,12 @@ void ExecutionMemoryObject::applyTransition(Transition* t) {
     stringIdx++;
   }
 
-  std::vector<size_t> groupEnds = t->getGroupEnds();
-  for(std::vector<size_t>::iterator it = groupEnds.begin();
-      it != groupEnds.end();
+  std::vector<size_t> tGroupEnds = t->getGroupEnds();
+  for(std::vector<size_t>::iterator it = tGroupEnds.begin();
+      it != tGroupEnds.end();
       ++it) {
     groupRecording[*it] = false;
+    groupEnds[*it] = stringIdx;
   }
 
 }
@@ -202,6 +220,37 @@ size_t ExecutionMemoryObject::getStringIdx() const {
 }
 std::vector<std::vector<size_t>> ExecutionMemoryObject::getGroupContents() const {
   return groupContents;
+}
+std::vector<size_t> ExecutionMemoryObject::getGroupStarts() const {
+  return groupStarts;
+}
+std::vector<size_t> ExecutionMemoryObject::getGroupEnds() const {
+  return groupEnds;
+}
+
+std::string ExecutionMemoryObject::getPrintableForm() {
+  std::string printableForm = "";
+  
+  printableForm.append("State: ");
+  printableForm.append(currentState->getLabel());
+  printableForm.append("\n");
+
+  printableForm.append("stringIdx: ");
+  printableForm.append(std::to_string(stringIdx));
+  printableForm.append("\n");
+
+  printableForm.append("groupData: ");
+  printableForm.append("\n");
+  for(int i = 0; i < groupRecording.size(); i++) {
+    printableForm.append(std::to_string(groupRecording[i]));
+    printableForm.append(" ");
+    printableForm.append(std::to_string(groupStarts[i]));
+    printableForm.append(" ");
+    printableForm.append(std::to_string(groupEnds[i]));
+    printableForm.append("\n");
+  }
+
+  return printableForm;
 }
 
 
@@ -299,6 +348,7 @@ size_t NFA::getGroupCount() {
   return groupEnds.size();
 }
 
+/*
 std::vector<std::vector<size_t>> NFA::engineMatch(std::string input, size_t stringStartIdx) {
   std::vector<std::vector<size_t>> output;
   
@@ -327,7 +377,56 @@ std::vector<std::vector<size_t>> NFA::engineMatch(std::string input, size_t stri
     
   }
 
+  return output;
+}
+*/
+
+std::vector<std::pair<size_t, size_t>> NFA::zipGroupBounds(std::pair<
+							   std::vector<size_t>,
+							   std::vector<size_t>> groupBounds) {
+  assert(groupBounds.first.size() == groupBounds.second.size());
+  std::vector<std::pair<size_t, size_t>> zippedBounds;
+  for(int i = 0; i < groupBounds.first.size(); i++) {
+    std::pair<size_t, size_t> zippedPair(groupBounds.first[i], groupBounds.second[i]);
+    zippedBounds.push_back(zippedPair);
+  }
+  return zippedBounds;
+}
+
+std::vector<std::pair<size_t, size_t>> NFA::engineMatch(std::string input,
+							size_t stringStartIdx) {
+  std::vector<std::pair<size_t, size_t>> output;
   
+  std::stack<ExecutionMemoryObject> backtrackStack;
+  backtrackStack.emplace(states[startStateIdx], stringStartIdx, getGroupCount());
+
+  while(!backtrackStack.empty()) {
+    ExecutionMemoryObject snapshot = backtrackStack.top();
+    backtrackStack.pop();
+
+    std::cout << snapshot.getPrintableForm() << std::endl;
+
+    State* s = snapshot.getCurrentState();
+    if(s == states[endStateIdx]) {
+      std::pair<
+	std::vector<size_t>,
+	std::vector<size_t>
+	> groupBounds(snapshot.getGroupStarts(), snapshot.getGroupEnds());
+      return zipGroupBounds(groupBounds);
+    }
+
+    size_t stringIdx = snapshot.getStringIdx();
+    std::vector<Transition*> stateTransitions = s->getTransitions();
+    for(std::vector<Transition*>::iterator it = stateTransitions.begin();
+	it != stateTransitions.end();
+	++it) {
+      if((*it)->characterMatches(input, stringIdx)) {
+	backtrackStack.emplace(snapshot);
+	backtrackStack.top().applyTransition(*it);
+      }
+    }
+    
+  }
 
   return output;
 }

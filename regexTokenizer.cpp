@@ -193,6 +193,7 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     bool okPrevToken;
     switch(prevToken->get_token_type()) {
     case OPENPAREN:
+    case NONCAPOPENPAREN:
     case CONCAT:
     case ALTERNATOR:
       okPrevToken = false;
@@ -211,6 +212,7 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     bool okCurrToken;
     switch(currToken->get_token_type()) {
     case OPENPAREN:
+    case NONCAPOPENPAREN:
     case CHARCLASS:
     case WILDCHAR:
       okCurrToken = true;

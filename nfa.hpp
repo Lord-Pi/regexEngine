@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 
@@ -64,6 +65,8 @@ private:
   size_t stringIdx;
   std::vector<bool> groupRecording;
   std::vector<std::vector<size_t>> groupContents;
+  std::vector<size_t> groupStarts;
+  std::vector<size_t> groupEnds;
   std::vector<State*> epsilonLoopTracker;
   
 public:
@@ -75,6 +78,9 @@ public:
   State* getCurrentState() const;
   size_t getStringIdx() const;
   std::vector<std::vector<size_t>> getGroupContents() const;
+  std::vector<size_t> getGroupStarts() const;
+  std::vector<size_t> getGroupEnds() const;
+  std::string getPrintableForm();
 };
 
 
@@ -85,6 +91,10 @@ private:
   size_t endStateIdx;
 
   size_t getGroupCount();
+
+  static std::vector<std::pair<size_t, size_t>> zipGroupBounds(std::pair<
+							       std::vector<size_t>,
+							       std::vector<size_t>> groupBounds);
   
 public:
   NFA(std::string l1, std::string l2);
@@ -95,7 +105,8 @@ public:
   void addState(State* s);
   void clearStates();
   std::string printableForm();
-  std::vector<std::vector<size_t>> engineMatch(std::string input, size_t stringStartIdx);
+  std::vector<std::pair<size_t, size_t>> engineMatch(std::string input,
+						     size_t stringStartIdx);
   
 };
 
