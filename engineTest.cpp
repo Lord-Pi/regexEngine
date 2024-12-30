@@ -17,21 +17,30 @@ int main(int argc, char *argv[]) {
   testRegex = "([abc])([abc])([abc])";
   //testRegex = "([abc])";
   //testRegex = "a";
-  testRegex = "[0-9]+";
+  testRegex = "mul[(]([0-9]+),([0-9]+)[)]";
 
-  std::string testInput = "3456";
+  std::string testInput = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
 
   
 
   RegexEngine re;
   RegexEngine::compile(re, testRegex);
   RegexMatch m;
-  re.match(m, testInput);
-  std::cout << m.getNumGroups() << std::endl;
-  for(size_t i = 0; i < m.getNumGroups(); i++) {
-    std::cout << m.getGroup(i) << std::endl;
+  std::vector<RegexMatch> ms;
+  re.findAllFrom(ms, testInput, 1);
+  for(std::vector<RegexMatch>::iterator it = ms.begin();
+      it != ms.end();
+      ++it) {
+    std::cout << (*it).getNumGroups() << std::endl;
+    for(size_t i = 0; i < (*it).getNumGroups(); i++) {
+      std::cout << (*it).getGroup(i) << std::endl;
+    }
+    std::cout << std::endl;
   }
-
+  // std::cout << m.getNumGroups() << std::endl;
+  // for(size_t i = 0; i < m.getNumGroups(); i++) {
+  //   std::cout << m.getGroup(i) << std::endl;
+  // }
   
   
   /*
