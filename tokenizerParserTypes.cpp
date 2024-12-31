@@ -30,6 +30,8 @@ std::string TokenTypeMethods::tokenTypeToShortString(TokenType tt) {
     return "??";
   case WILDCHAR:
     return ".";
+  case ESCAPE:
+    return "\\";
   default:
     return "[]";
   }
@@ -63,6 +65,8 @@ std::string TokenTypeMethods::tokenTypeToLongString(TokenType tt) {
     return "WILDCHAR";
   case CHARCLASS:
     return "CHARCLASS";
+  case ESCAPE:
+    return "ESCAPE";
   default:
     return "UNKNOWN";
   }

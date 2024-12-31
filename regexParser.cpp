@@ -9,16 +9,16 @@
 #include <vector>
 
 
-AstCharacterNode::~AstCharacterNode() {
+AstTextNode::~AstTextNode() {
   delete tkn;
 }
-std::string AstCharacterNode::toString() const {
-  return "CHAR(" + tkn->get_str_rep() + ")";
+std::string AstTextNode::toString() const {
+  return "TEXT(" + tkn->get_str_rep() + ")";
 }
-AstNodeType AstCharacterNode::getAstNodeType() const {
-  return CHARACTER;
+AstNodeType AstTextNode::getAstNodeType() const {
+  return TEXT;
 }
-RegexToken* AstCharacterNode::getToken() {
+RegexToken* AstTextNode::getToken() {
   return tkn;
 }
 
@@ -150,8 +150,9 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
   switch(tok->get_token_type()) {
   case CHARCLASS:
   case WILDCHAR:
+  case ESCAPE:
     {
-      outputLine.push(new AstCharacterNode(tok));
+      outputLine.push(new AstTextNode(tok));
       break;
     }
   case OPENPAREN:

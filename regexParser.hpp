@@ -16,12 +16,12 @@ public:
   virtual AstNodeType getAstNodeType() const = 0;
 };
 
-class AstCharacterNode : public AstNode {
+class AstTextNode : public AstNode {
 private:
   RegexToken* tkn;
 public:
-  AstCharacterNode(RegexToken* tkn) : tkn(tkn) {}
-  ~AstCharacterNode();
+  AstTextNode(RegexToken* tkn) : tkn(tkn) {}
+  ~AstTextNode();
   std::string toString() const;
   AstNodeType getAstNodeType() const;
   RegexToken* getToken();

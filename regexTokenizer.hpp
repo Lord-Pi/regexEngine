@@ -102,6 +102,16 @@ public:
   std::string get_str_rep() const;
 };
 
+class EscapeToken : public RegexToken {
+private:
+  char escapedChar;
+public:
+  EscapeToken(char c);
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+  char getEscapedChar() const;
+};
+
 
 class RegexTokenizer {
 public:

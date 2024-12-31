@@ -12,27 +12,13 @@
 
 class Transition;
 class State;
+class ExecutionMemoryObject;
 
-Transition::Transition(std::string label, bool inverted, State* destination) {
-  this->label = label;
-  if(label.length() == 0) {
-    ccd_o.reset();
-  } else {
-    ccd_o.emplace(label, inverted);
-  }
+Transition::Transition(State* destination) {
   this->destination = destination;
-}
-bool Transition::isEpsilon() const {
-  return !ccd_o.has_value();
 }
 State* Transition::getDestination() const {
   return destination;
-}
-bool Transition::characterMatches(std::string s, size_t idx) {
-  if(isEpsilon()) {
-    return true;
-  }
-  return ccd_o->characterClassContains(s[idx]);
 }
 
 void Transition::addGroupStart(size_t i) {
@@ -49,19 +35,7 @@ std::vector<size_t> Transition::getGroupEnds() {
 }
 std::string Transition::printableForm() {
   std::string printable;
-  if(label.length() == 0) {
-    printable.append("\u03B5");
-  } else {
-    printable.append(label);
-    printable.append(" (");
-    for(std::string::iterator it = label.begin();
-	it != label.end();
-	++it) {
-      printable.append(std::to_string((unsigned int)(*it)));
-      printable.append(" ");
-    }
-    printable.append(")");
-  }
+  printable.append(computeLabel());
   printable.append(" -> ");
   printable.append(destination->getLabel());
   if(groupStarts.size() > 0) {
@@ -84,6 +58,84 @@ std::string Transition::printableForm() {
   }
   return printable;
 }
+
+EpsilonTransition::EpsilonTransition(State* destination) : Transition(destination) {}
+std::string EpsilonTransition::computeLabel() const {
+  return "\u03B5";
+}
+bool EpsilonTransition::isEpsilon() const {
+  return true;
+}
+bool EpsilonTransition::transitionApplies(std::string s, ExecutionMemoryObject &emo) {
+  return true;
+}
+size_t EpsilonTransition::charactersConsumed(ExecutionMemoryObject &emo) const {
+  return 0;
+}
+
+
+CharacterTransition::CharacterTransition(std::string label,
+					 bool inverted,
+					 State* destination) : Transition(destination),
+							       label(label),
+							       ccd(CharacterClassDecider(label, inverted)) {}
+std::string CharacterTransition::computeLabel() const {
+  std::string computedLabel = "";
+  
+  computedLabel.append(label);
+  computedLabel.append(" (");
+  for(std::string::const_iterator it = label.cbegin();
+      it != label.cend();
+      ++it) {
+    computedLabel.append(std::to_string((unsigned int)(*it)));
+    computedLabel.append(" ");
+  }
+  computedLabel.append(")");
+
+  return computedLabel;
+}
+bool CharacterTransition::isEpsilon() const {
+  return false;
+}
+bool CharacterTransition::transitionApplies(std::string s, ExecutionMemoryObject &emo) {
+  return ccd.characterClassContains(s[emo.getStringIdx()]);
+}
+size_t CharacterTransition::charactersConsumed(ExecutionMemoryObject &emo) const {
+  return 1;
+}
+
+
+BackreferenceTransition::BackreferenceTransition(size_t referenceNumber,
+						 State* destination) : Transition(destination),
+								       referenceNumber(referenceNumber) {}
+std::string BackreferenceTransition::computeLabel() const {
+  std::string computedLabel = "BACKREFERENCE TO GROUP ";
+  computedLabel.append(std::to_string(referenceNumber));
+  return computedLabel;
+}
+bool BackreferenceTransition::isEpsilon() const {
+  return false;
+}
+bool BackreferenceTransition::transitionApplies(std::string s, ExecutionMemoryObject &emo) {
+  std::pair<size_t, size_t> lockedGroupBounds = emo.getLockedGroupBounds()[referenceNumber];
+  std::string::iterator referenceStart = s.begin() + lockedGroupBounds.first;
+  std::string::iterator referenceEnd = s.begin() + lockedGroupBounds.second;
+  std::string::iterator inputStart = s.begin() + emo.getStringIdx();
+
+  std::pair<
+    std::string::iterator,
+    std::string::iterator
+    > mismatchResult = std::mismatch(referenceStart,
+				     referenceEnd,
+				     inputStart);
+  return referenceEnd == mismatchResult.first;
+											 
+}
+size_t BackreferenceTransition::charactersConsumed(ExecutionMemoryObject &emo) const {
+  std::pair<size_t, size_t> lockedGroupBounds = emo.getLockedGroupBounds()[referenceNumber];
+  return lockedGroupBounds.second - lockedGroupBounds.first;
+}
+
 
 
 
@@ -147,9 +199,11 @@ ExecutionMemoryObject::ExecutionMemoryObject(State* startState,
   groupContents.clear();
   groupStarts.clear();
   groupEnds.clear();
+  lockedGroupBounds.clear();
   for(size_t i = 0; i < groupCount; i++) {
     groupStarts.push_back(0);
     groupEnds.push_back(0);
+    lockedGroupBounds.push_back(std::pair<size_t, size_t>(0, 0));
     groupRecording.push_back(false);
     std::vector<size_t> recordingRow;
     recordingRow.clear();
@@ -165,6 +219,7 @@ ExecutionMemoryObject::ExecutionMemoryObject(const ExecutionMemoryObject &emo) {
   groupContents = emo.groupContents;
   groupStarts = emo.groupStarts;
   groupEnds = emo.groupEnds;
+  lockedGroupBounds = emo.lockedGroupBounds;
   epsilonLoopTracker = emo.epsilonLoopTracker;
 }
 
@@ -193,7 +248,7 @@ void ExecutionMemoryObject::applyTransition(Transition* t) {
 	groupContents[i].push_back(stringIdx);
       }
     }
-    stringIdx++;
+    stringIdx += t->charactersConsumed(*this);
   }
 
   std::vector<size_t> tGroupEnds = t->getGroupEnds();
@@ -202,6 +257,7 @@ void ExecutionMemoryObject::applyTransition(Transition* t) {
       ++it) {
     groupRecording[*it] = false;
     groupEnds[*it] = stringIdx;
+    lockedGroupBounds[*it] = std::pair<size_t, size_t>(groupStarts[*it], groupEnds[*it]);
   }
 
 }
@@ -227,7 +283,9 @@ std::vector<size_t> ExecutionMemoryObject::getGroupStarts() const {
 std::vector<size_t> ExecutionMemoryObject::getGroupEnds() const {
   return groupEnds;
 }
-
+std::vector<std::pair<size_t, size_t>> ExecutionMemoryObject::getLockedGroupBounds() const {
+  return lockedGroupBounds;
+}
 std::string ExecutionMemoryObject::getPrintableForm() {
   std::string printableForm = "";
   
@@ -243,11 +301,15 @@ std::string ExecutionMemoryObject::getPrintableForm() {
   printableForm.append("\n");
   for(int i = 0; i < groupRecording.size(); i++) {
     printableForm.append(std::to_string(groupRecording[i]));
-    printableForm.append(" ");
+    printableForm.append(" (");
     printableForm.append(std::to_string(groupStarts[i]));
-    printableForm.append(" ");
+    printableForm.append(", ");
     printableForm.append(std::to_string(groupEnds[i]));
-    printableForm.append("\n");
+    printableForm.append(") (");
+    printableForm.append(std::to_string(lockedGroupBounds[i].first));
+    printableForm.append(", ");
+    printableForm.append(std::to_string(lockedGroupBounds[i].second));
+    printableForm.append(")\n");
   }
 
   return printableForm;
@@ -268,7 +330,6 @@ NFA::~NFA() {
   for(std::vector<State*>::iterator it = states.begin();
       it != states.end();
       ++it) {
-    delete (*it);
   }
 }
 
@@ -348,39 +409,6 @@ size_t NFA::getGroupCount() {
   return groupEnds.size();
 }
 
-/*
-std::vector<std::vector<size_t>> NFA::engineMatch(std::string input, size_t stringStartIdx) {
-  std::vector<std::vector<size_t>> output;
-  
-  std::stack<ExecutionMemoryObject> backtrackStack;
-  backtrackStack.emplace(states[startStateIdx], stringStartIdx, getGroupCount());
-
-  while(!backtrackStack.empty()) {
-    ExecutionMemoryObject snapshot = backtrackStack.top();
-    backtrackStack.pop();
-
-    State* s = snapshot.getCurrentState();
-    if(s == states[endStateIdx]) {
-      return snapshot.getGroupContents();
-    }
-
-    size_t stringIdx = snapshot.getStringIdx();
-    std::vector<Transition*> stateTransitions = s->getTransitions();
-    for(std::vector<Transition*>::iterator it = stateTransitions.begin();
-	it != stateTransitions.end();
-	++it) {
-      if((*it)->characterMatches(input, stringIdx)) {
-	backtrackStack.emplace(snapshot);
-	backtrackStack.top().applyTransition(*it);
-      }
-    }
-    
-  }
-
-  return output;
-}
-*/
-
 std::vector<std::pair<size_t, size_t>> NFA::zipGroupBounds(std::pair<
 							   std::vector<size_t>,
 							   std::vector<size_t>> groupBounds) {
@@ -404,15 +432,9 @@ std::vector<std::pair<size_t, size_t>> NFA::engineMatch(std::string input,
     ExecutionMemoryObject snapshot = backtrackStack.top();
     backtrackStack.pop();
 
-    //std::cout << snapshot.getPrintableForm() << std::endl;
-
     State* s = snapshot.getCurrentState();
     if(s == states[endStateIdx]) {
-      std::pair<
-	std::vector<size_t>,
-	std::vector<size_t>
-	> groupBounds(snapshot.getGroupStarts(), snapshot.getGroupEnds());
-      return zipGroupBounds(groupBounds);
+      return snapshot.getLockedGroupBounds();
     }
 
     size_t stringIdx = snapshot.getStringIdx();
@@ -420,7 +442,7 @@ std::vector<std::pair<size_t, size_t>> NFA::engineMatch(std::string input,
     for(std::vector<Transition*>::iterator it = stateTransitions.begin();
 	it != stateTransitions.end();
 	++it) {
-      if((*it)->characterMatches(input, stringIdx)) {
+      if((*it)->transitionApplies(input, snapshot)) {
 	backtrackStack.emplace(snapshot);
 	backtrackStack.top().applyTransition(*it);
       }

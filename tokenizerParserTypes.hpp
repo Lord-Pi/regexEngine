@@ -17,11 +17,12 @@ enum TokenType {
   LAZYPLUS,
   LAZYQUESTION,
   CHARCLASS,
-  WILDCHAR
+  WILDCHAR,
+  ESCAPE
 };
 
 enum AstNodeType {
-  CHARACTER,
+  TEXT,
   UNARY,
   BINARY,
   GROUP

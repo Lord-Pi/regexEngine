@@ -12,28 +12,65 @@
 
 class Transition;
 class State;
-
+class ExecutionMemoryObject;
 
 class Transition {
 private:
-  // Set to None for an epsilon transition
-  std::string label;
-  std::optional<CharacterClassDecider> ccd_o;
   State* destination;
   std::vector<size_t> groupStarts;
   std::vector<size_t> groupEnds;
 
 public:
-  Transition(std::string label, bool inverted, State* destination);
-  bool isEpsilon() const;
+  Transition(State* destination);
   State* getDestination() const;
-  bool characterMatches(std::string s, size_t idx);
   void addGroupStart(size_t i);
   void addGroupEnd(size_t i);
   std::vector<size_t> getGroupStarts();
   std::vector<size_t> getGroupEnds();
   std::string printableForm();
+
+  virtual std::string computeLabel() const = 0;
+  virtual bool isEpsilon() const = 0;
+  virtual bool transitionApplies(std::string s, ExecutionMemoryObject &emo) = 0;
+  virtual size_t charactersConsumed(ExecutionMemoryObject &emo) const = 0;
 };
+
+class EpsilonTransition : public Transition {
+public:
+  EpsilonTransition(State* destination);
+  std::string computeLabel() const;
+  bool isEpsilon() const;
+  bool transitionApplies(std::string s, ExecutionMemoryObject &emo);
+  size_t charactersConsumed(ExecutionMemoryObject &emo) const;
+};
+
+class CharacterTransition : public Transition {
+private:
+  std::string label;
+  CharacterClassDecider ccd;
+
+public:
+  CharacterTransition(std::string label, bool inverted, State* destination);
+  std::string computeLabel() const;
+  bool isEpsilon() const;
+  bool transitionApplies(std::string s, ExecutionMemoryObject &emo);
+  size_t charactersConsumed(ExecutionMemoryObject &emo) const;
+};
+
+class BackreferenceTransition : public Transition {
+private:
+  size_t referenceNumber;
+
+public:
+  BackreferenceTransition(size_t referenceNumber, State* destination);
+  std::string computeLabel() const;
+  bool isEpsilon() const;
+  bool transitionApplies(std::string s, ExecutionMemoryObject &emo);
+  size_t charactersConsumed(ExecutionMemoryObject &emo) const;
+};
+
+
+
 
 
 class State {
@@ -67,6 +104,7 @@ private:
   std::vector<std::vector<size_t>> groupContents;
   std::vector<size_t> groupStarts;
   std::vector<size_t> groupEnds;
+  std::vector<std::pair<size_t, size_t>> lockedGroupBounds;
   std::vector<State*> epsilonLoopTracker;
   
 public:
@@ -80,6 +118,7 @@ public:
   std::vector<std::vector<size_t>> getGroupContents() const;
   std::vector<size_t> getGroupStarts() const;
   std::vector<size_t> getGroupEnds() const;
+  std::vector<std::pair<size_t, size_t>> getLockedGroupBounds() const;
   std::string getPrintableForm();
 };
 

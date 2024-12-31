@@ -18,9 +18,13 @@ int main(int argc, char *argv[]) {
   //testRegex = "([abc])";
   //testRegex = "a";
   testRegex = "mul[(]([0-9]+),([0-9]+)[)]";
-  testRegex = "^1?$|^(11+?)\1+$";
+  //testRegex = R"x(^1?$|^(11+?)\1+$)x";
+  testRegex = "(..) (\\1)";
+
+  std::cout << testRegex << std::endl;
   
   std::string testInput = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
+  testInput = "ab ab";
 
   
 
@@ -28,7 +32,7 @@ int main(int argc, char *argv[]) {
   RegexEngine::compile(re, testRegex);
   RegexMatch m;
   std::vector<RegexMatch> ms;
-  re.findAllFrom(ms, testInput, 1);
+  re.findAll(ms, testInput);
   for(std::vector<RegexMatch>::iterator it = ms.begin();
       it != ms.end();
       ++it) {

@@ -118,6 +118,21 @@ std::string WildCharToken::get_str_rep() const {
   return ".";
 }
 
+EscapeToken::EscapeToken(char c) {
+  escapedChar = c;
+}
+TokenType EscapeToken::get_token_type() const {
+  return ESCAPE;
+}
+std::string EscapeToken::get_str_rep() const {
+  std::string retVal = "\\";
+  retVal.push_back(escapedChar);
+  return retVal;
+}
+char EscapeToken::getEscapedChar() const {
+  return escapedChar;
+}
+
 std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
   int groupCount = 1;
   std::vector<RegexToken*> v;
@@ -125,7 +140,7 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
     switch(*it) {
     case '(':
       {
-	if(it+1 != s.end() && *(it+1)=='?' && it+2 != s.end() *(it+2)==':') {
+	if(it+1 != s.end() && *(it+1)=='?' && it+2 != s.end() && *(it+2)==':') {
 	  v.push_back(new NonCaptOpenParenToken());
 	  it += 2;
 	} else {
@@ -176,6 +191,11 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
     case '.':
       {
 	v.push_back(new WildCharToken());
+	break;
+      }
+    case '\\':
+      {
+	v.push_back(new EscapeToken(*(++it)));
 	break;
       }
     default:
