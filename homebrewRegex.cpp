@@ -70,7 +70,7 @@ void RegexEngine::findAllFrom(std::vector<RegexMatch> &matches,
   do {
     matches.push_back(RegexMatch());
     findNextMatchFrom(matches.back(), inputString, roverIdx);
-    std::cout << "matches.back().getNumGroups(): " << matches.back().getNumGroups() << std::endl;
+    // std::cout << "matches.back().getNumGroups(): " << matches.back().getNumGroups() << std::endl;
     if(matches.back().getNumGroups() > 0) {
       roverIdx = matches.back().getGroupBounds(0).second;
     }

@@ -404,7 +404,7 @@ std::vector<std::pair<size_t, size_t>> NFA::engineMatch(std::string input,
     ExecutionMemoryObject snapshot = backtrackStack.top();
     backtrackStack.pop();
 
-    std::cout << snapshot.getPrintableForm() << std::endl;
+    //std::cout << snapshot.getPrintableForm() << std::endl;
 
     State* s = snapshot.getCurrentState();
     if(s == states[endStateIdx]) {

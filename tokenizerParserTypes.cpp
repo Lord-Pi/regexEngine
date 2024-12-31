@@ -22,6 +22,12 @@ std::string TokenTypeMethods::tokenTypeToShortString(TokenType tt) {
     return "+";
   case KLEENEQUESTION:
     return "?";
+  case LAZYSTAR:
+    return "*?";
+  case LAZYPLUS:
+    return "+?";
+  case LAZYQUESTION:
+    return "??";
   case WILDCHAR:
     return ".";
   default:
@@ -47,6 +53,12 @@ std::string TokenTypeMethods::tokenTypeToLongString(TokenType tt) {
     return "KLEENEPLUS";
   case KLEENEQUESTION:
     return "KLEENEQUESTION";
+  case LAZYSTAR:
+    return "LAZYSTAR";
+  case LAZYPLUS:
+    return "LAZYPLUS";
+  case LAZYQUESTION:
+    return "LAZYQUESTION";
   case WILDCHAR:
     return "WILDCHAR";
   case CHARCLASS:

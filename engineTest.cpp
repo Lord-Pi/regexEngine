@@ -18,7 +18,8 @@ int main(int argc, char *argv[]) {
   //testRegex = "([abc])";
   //testRegex = "a";
   testRegex = "mul[(]([0-9]+),([0-9]+)[)]";
-
+  testRegex = "^1?$|^(11+?)\1+$";
+  
   std::string testInput = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
 
   

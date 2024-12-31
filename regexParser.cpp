@@ -91,6 +91,9 @@ int RegexParser::getOperatorPrecedence(TokenType op) {
   case KLEENESTAR:
   case KLEENEPLUS:
   case KLEENEQUESTION:
+  case LAZYSTAR:
+  case LAZYPLUS:
+  case LAZYQUESTION:
     return 4;
   case OPENPAREN:
   case NONCAPOPENPAREN:
@@ -126,6 +129,9 @@ void RegexParser::applyOperatorToStack(std::stack<AstNode*> &s, TokenType op, in
   case KLEENESTAR:
   case KLEENEPLUS:
   case KLEENEQUESTION:
+  case LAZYSTAR:
+  case LAZYPLUS:
+  case LAZYQUESTION:
     {
       AstNode* inner = s.top();
       s.pop();

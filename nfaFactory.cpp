@@ -55,25 +55,35 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
       outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
       inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
 
+      // The transitions go onto a stack during execution and are therefore
+      // processed in reverse of the order in which they're added
       switch(unaryAst->getTokenType()) {
       case KLEENESTAR:
 	{
 	  Transition* epsilon3 = new Transition("",
 						false,
 						outer->getStates()[outer->getEndStateIdx()]);
-	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon3);
 	  Transition* epsilon4 = new Transition("",
 						false,
 						inner->getStates()[inner->getStartStateIdx()]);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon3);
+	  
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
 	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon4);
 	  break;
 	}
       case KLEENEPLUS:
 	{
-	  Transition* epsilon3 = new Transition("",
+	  Transition* epsilon4 = new Transition("",
 						false,
 						inner->getStates()[inner->getStartStateIdx()]);
-	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon3);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon4);
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
 	  break;
 	}
       case KLEENEQUESTION:
@@ -81,7 +91,52 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
 	  Transition* epsilon3 = new Transition("",
 						false,
 						outer->getStates()[outer->getEndStateIdx()]);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
 	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon3);
+	  
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
+	  break;
+	}
+      case LAZYSTAR:
+	{
+	  Transition* epsilon3 = new Transition("",
+						false,
+						outer->getStates()[outer->getEndStateIdx()]);
+	  Transition* epsilon4 = new Transition("",
+						false,
+						inner->getStates()[inner->getStartStateIdx()]);
+	  
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon4);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon3);
+	  break;
+	}
+      case LAZYPLUS:
+	{
+	  Transition* epsilon4 = new Transition("",
+						false,
+						inner->getStates()[inner->getStartStateIdx()]);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon4);
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+	  break;
+	}
+      case LAZYQUESTION:
+	{
+	  Transition* epsilon3 = new Transition("",
+						false,
+						outer->getStates()[outer->getEndStateIdx()]);
+	  
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon1);
+	  
+	  inner->getStates()[inner->getEndStateIdx()]->addTransition(epsilon2);
+	  outer->getStates()[outer->getStartStateIdx()]->addTransition(epsilon3);
+
 	  break;
 	}
       default:

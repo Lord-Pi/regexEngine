@@ -68,6 +68,27 @@ std::string KleeneQuestionToken::get_str_rep() const {
   return "?";
 }
 
+TokenType LazyStarToken::get_token_type() const {
+  return LAZYSTAR;
+}
+std::string LazyStarToken::get_str_rep() const {
+  return "*?";
+}
+
+TokenType LazyPlusToken::get_token_type() const {
+  return LAZYPLUS;
+}
+std::string LazyPlusToken::get_str_rep() const {
+  return "+?";
+}
+
+TokenType LazyQuestionToken::get_token_type() const {
+  return LAZYQUESTION;
+}
+std::string LazyQuestionToken::get_str_rep() const {
+  return "??";
+}
+
 CharacterClassToken::CharacterClassToken(std::string s, bool invert) {
   invert_selection = invert;
   str_rep = std::string(s.begin(), s.end());
@@ -104,7 +125,7 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
     switch(*it) {
     case '(':
       {
-	if(*(it+1)=='?' && *(it+2)==':') {
+	if(it+1 != s.end() && *(it+1)=='?' && it+2 != s.end() *(it+2)==':') {
 	  v.push_back(new NonCaptOpenParenToken());
 	  it += 2;
 	} else {
@@ -124,17 +145,32 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
       }
     case '*':
       {
-	v.push_back(new KleeneStarToken());
+	if(it+1 != s.end() && *(it+1)=='?') {
+	  v.push_back(new LazyStarToken());
+	  ++it;
+	} else {
+	  v.push_back(new KleeneStarToken());
+	}
 	break;
       }
     case '+':
       {
-	v.push_back(new KleenePlusToken());
+	if(it+1 != s.end() && *(it+1)=='?') {
+	  v.push_back(new LazyPlusToken());
+	  ++it;
+	} else {
+	  v.push_back(new KleenePlusToken());
+	}
 	break;
       }
     case '?':
       {
-	v.push_back(new KleeneQuestionToken());
+	if(it+1 != s.end() && *(it+1)=='?') {
+	  v.push_back(new LazyQuestionToken());
+	  ++it;
+	} else {
+	  v.push_back(new KleeneQuestionToken());
+	}
 	break;
       }
     case '.':
@@ -202,6 +238,9 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     case KLEENESTAR:
     case KLEENEPLUS:
     case KLEENEQUESTION:
+    case LAZYSTAR:
+    case LAZYPLUS:
+    case LAZYQUESTION:
     case CHARCLASS:
     case WILDCHAR:
     default:
@@ -223,6 +262,9 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     case KLEENESTAR:
     case KLEENEPLUS:
     case KLEENEQUESTION:
+    case LAZYSTAR:
+    case LAZYPLUS:
+    case LAZYQUESTION:
     default:
       okCurrToken = false;
       break;
