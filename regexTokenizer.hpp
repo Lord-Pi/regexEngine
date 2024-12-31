@@ -65,6 +65,24 @@ public:
   std::string get_str_rep() const;
 };
 
+class LazyStarToken : public RegexToken {
+public:
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+};
+
+class LazyPlusToken : public RegexToken {
+public:
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+};
+
+class LazyQuestionToken : public RegexToken {
+public:
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+};
+
 class CharacterClassToken : public RegexToken {
 private:
   std::string str_rep;
