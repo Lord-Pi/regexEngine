@@ -83,6 +83,18 @@ public:
   std::string get_str_rep() const;
 };
 
+class CaretAnchorToken : public RegexToken {
+public:
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+};
+
+class DollarAnchorToken : public RegexToken {
+public:
+  TokenType get_token_type() const;
+  std::string get_str_rep() const;
+};
+
 class CharacterClassToken : public RegexToken {
 private:
   std::string str_rep;

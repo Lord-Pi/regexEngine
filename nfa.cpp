@@ -137,6 +137,31 @@ size_t BackreferenceTransition::charactersConsumed(ExecutionMemoryObject &emo) c
 }
 
 
+AnchorTransition::AnchorTransition(State* destination) : Transition(destination) {}
+bool AnchorTransition::isEpsilon() const {
+  return false;
+}
+size_t AnchorTransition::charactersConsumed(ExecutionMemoryObject &emo) const {
+  return 0;
+}
+
+StringStartAnchorTransition::StringStartAnchorTransition(State* destination) : AnchorTransition(destination) {}
+std::string StringStartAnchorTransition::computeLabel() const {
+  return "START OF STRING ANCHOR";
+}
+bool StringStartAnchorTransition::transitionApplies(std::string s, ExecutionMemoryObject &emo) {
+  return emo.getStringIdx() == 0;
+}
+
+StringEndAnchorTransition::StringEndAnchorTransition(State* destination) : AnchorTransition(destination) {}
+std::string StringEndAnchorTransition::computeLabel() const {
+  return "END OF STRING ANCHOR";
+}
+bool StringEndAnchorTransition::transitionApplies(std::string s, ExecutionMemoryObject &emo) {
+  return emo.getStringIdx() == s.length();
+}
+
+
 
 
 

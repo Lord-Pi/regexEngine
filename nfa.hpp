@@ -69,6 +69,28 @@ public:
   size_t charactersConsumed(ExecutionMemoryObject &emo) const;
 };
 
+class AnchorTransition : public Transition {
+public:
+  AnchorTransition(State* destination);
+  virtual std::string computeLabel() const = 0;
+  bool isEpsilon() const;
+  virtual bool transitionApplies(std::string s, ExecutionMemoryObject &emo) = 0;
+  size_t charactersConsumed(ExecutionMemoryObject &emo) const;
+};
+class StringStartAnchorTransition : public AnchorTransition {
+public:
+  StringStartAnchorTransition(State* destination);
+  std::string computeLabel() const;
+  bool transitionApplies(std::string s, ExecutionMemoryObject &emo);
+};
+class StringEndAnchorTransition : public AnchorTransition {
+public:
+  StringEndAnchorTransition(State* destination);
+  std::string computeLabel() const;
+  bool transitionApplies(std::string s, ExecutionMemoryObject &emo);
+};
+
+
 
 
 

@@ -148,6 +148,8 @@ void RegexParser::shuntingYardInternal(std::stack<AstNode*> &outputLine,
 				       std::stack<RegexToken*> &operatorStandby,
 				       RegexToken* &tok) {
   switch(tok->get_token_type()) {
+  case CARETANCHOR:
+  case DOLLARANCHOR:
   case CHARCLASS:
   case WILDCHAR:
   case ESCAPE:

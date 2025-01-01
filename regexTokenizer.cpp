@@ -89,6 +89,20 @@ std::string LazyQuestionToken::get_str_rep() const {
   return "??";
 }
 
+TokenType CaretAnchorToken::get_token_type() const {
+  return CARETANCHOR;
+}
+std::string CaretAnchorToken::get_str_rep() const {
+  return "^";
+}
+
+TokenType DollarAnchorToken::get_token_type() const {
+  return DOLLARANCHOR;
+}
+std::string DollarAnchorToken::get_str_rep() const {
+  return "$";
+}
+
 CharacterClassToken::CharacterClassToken(std::string s, bool invert) {
   invert_selection = invert;
   str_rep = std::string(s.begin(), s.end());
@@ -188,6 +202,16 @@ std::vector<RegexToken*> RegexTokenizer::stringToTokensPass(std::string s) {
 	}
 	break;
       }
+    case '^':
+      {
+	v.push_back(new CaretAnchorToken());
+	break;
+      }
+    case '$':
+      {
+	v.push_back(new DollarAnchorToken());
+	break;
+      }
     case '.':
       {
 	v.push_back(new WildCharToken());
@@ -261,6 +285,8 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     case LAZYSTAR:
     case LAZYPLUS:
     case LAZYQUESTION:
+    case CARETANCHOR:
+    case DOLLARANCHOR:
     case CHARCLASS:
     case WILDCHAR:
     default:
@@ -272,6 +298,8 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     switch(currToken->get_token_type()) {
     case OPENPAREN:
     case NONCAPOPENPAREN:
+    case CARETANCHOR:
+    case DOLLARANCHOR:
     case CHARCLASS:
     case WILDCHAR:
       okCurrToken = true;

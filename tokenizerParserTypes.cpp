@@ -28,6 +28,10 @@ std::string TokenTypeMethods::tokenTypeToShortString(TokenType tt) {
     return "+?";
   case LAZYQUESTION:
     return "??";
+  case CARETANCHOR:
+    return "^";
+  case DOLLARANCHOR:
+    return "$";
   case WILDCHAR:
     return ".";
   case ESCAPE:
@@ -61,6 +65,10 @@ std::string TokenTypeMethods::tokenTypeToLongString(TokenType tt) {
     return "LAZYPLUS";
   case LAZYQUESTION:
     return "LAZYQUESTION";
+  case CARETANCHOR:
+    return "CARETANCHOR";
+  case DOLLARANCHOR:
+    return "DOLLARANCHOR";
   case WILDCHAR:
     return "WILDCHAR";
   case CHARCLASS:
