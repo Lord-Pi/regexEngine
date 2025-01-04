@@ -289,6 +289,7 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     case DOLLARANCHOR:
     case CHARCLASS:
     case WILDCHAR:
+    case ESCAPE:
     default:
       okPrevToken = true;
       break;
@@ -302,6 +303,7 @@ std::vector<RegexToken*> RegexTokenizer::insertConcatPass(std::vector<RegexToken
     case DOLLARANCHOR:
     case CHARCLASS:
     case WILDCHAR:
+    case ESCAPE:
       okCurrToken = true;
       break;
     case CLOSEPAREN:

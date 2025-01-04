@@ -10,6 +10,17 @@
 
 
 
+bool primeTest(int i) {
+  std::string primeRegex = R"x(^1?$|^(11+?)\1+$)x";
+  std::string ones(i, '1');
+  
+  RegexEngine re;
+  RegexEngine::compile(re, primeRegex);
+  RegexMatch m;
+  re.match(m, ones);
+  return m.getNumGroups() == 0;
+}
+
 
 int main(int argc, char *argv[]) {
   std::string testRegex = "[abc].[^def][]][^]].(a|b|.)+a?|c";
@@ -18,16 +29,21 @@ int main(int argc, char *argv[]) {
   //testRegex = "([abc])";
   //testRegex = "a";
   testRegex = "mul[(]([0-9]+),([0-9]+)[)]";
-  //testRegex = R"x(^1?$|^(11+?)\1+$)x";
-  testRegex = "(..) (\\1)";
-
+  testRegex = R"x(^1?$|^(11+?)\1+$)x";
+  //testRegex = "(..) (\\1)";
+  //testRegex = "ab|cd";
+  
   std::cout << testRegex << std::endl;
   
   std::string testInput = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
   testInput = "ab ab";
+  testInput = "11";
 
+  for(size_t i = 1; i <= 101; i++) {
+    std::cout << i << ": " << primeTest(i) << std::endl;
+  }
+  return 0;
   
-
   RegexEngine re;
   RegexEngine::compile(re, testRegex);
   RegexMatch m;
@@ -46,6 +62,7 @@ int main(int argc, char *argv[]) {
   // for(size_t i = 0; i < m.getNumGroups(); i++) {
   //   std::cout << m.getGroup(i) << std::endl;
   // }
+
   
   
   /*

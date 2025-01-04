@@ -225,6 +225,12 @@ AstNode* RegexParser::shuntingYard(std::vector<RegexToken*> infix) {
     delete nextTok;
   }
 
+  if(outputLine.size() != 1) {
+    while(outputLine.size() != 0) {
+      std::cout << outputLine.top()->toString() << std::endl;
+      outputLine.pop();
+    }
+  }
   assert(outputLine.size() == 1);
 
   return outputLine.top();

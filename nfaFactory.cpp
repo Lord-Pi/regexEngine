@@ -24,80 +24,102 @@ NFA* NFAFactory::recursiveCreateNFA(AstNode* ast) {
     {
       NFA* newNFA = new NFA(startStateLabel, endStateLabel);
       AstTextNode* charAst = dynamic_cast<AstTextNode*>(ast);
-      if(charAst->getToken()->get_token_type() == WILDCHAR) {
-	Transition* wildTransition = new CharacterTransition("\n",
-							     true,
-							     newNFA->getStates()[newNFA->getEndStateIdx()]);
-	newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(wildTransition);
-      } else if(charAst->getToken()->get_token_type() == ESCAPE) {
-	EscapeToken* escapeToken = dynamic_cast<EscapeToken*>(charAst->getToken());
-	char escapedChar = escapeToken->getEscapedChar();
-	switch(escapedChar) {
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	  {
-	    Transition* tn = new BackreferenceTransition(escapedChar-'0',
-							 newNFA->getStates()[newNFA->getEndStateIdx()]);
-	    newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
-	    break;
-	  }
-	case 'd':
-	  {
-	    Transition* tn = new CharacterTransition("0123456789",
-						     false,
-						     newNFA->getStates()[newNFA->getEndStateIdx()]);
-	    newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
-	    break;
-	  }
-	case 'D':
-	  {
-	    Transition* tn = new CharacterTransition("0123456789",
-						     true,
-						     newNFA->getStates()[newNFA->getEndStateIdx()]);
-	    newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
-	    break;
-	  }
-	case '.':
-	case '^':
-	case '$':
-	case '*':
-	case '+':
-	case '?':
-	case '{':
-	case '}':
-	case '[':
-	case ']':
-	case '(':
-	case ')':
-	case '|':
-	case '\\':
-	  {
-	    Transition* tn = new CharacterTransition(std::to_string(escapedChar),
-						     false,
-						     newNFA->getStates()[newNFA->getEndStateIdx()]);
-	    newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
-	    break;
-	  }					
-	default:
-	  {
-	    throw std::invalid_argument("Currently unsupported escape sequence: " +
-					std::to_string(escapedChar));
-	  }
+      switch(charAst->getToken()->get_token_type()) {
+      case CARETANCHOR:
+	{
+	  Transition* tn = new StringStartAnchorTransition(newNFA->getStates()[newNFA->getEndStateIdx()]);
+	  newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	  break;
 	}
-      } else {
-	// This should probably hopefully be a CharacterClassToken
-	CharacterClassToken* classToken = dynamic_cast<CharacterClassToken*>(charAst->getToken());
-	Transition* classTransition = new CharacterTransition(classToken->get_raw_str_rep(),
-							      classToken->get_is_inverted(),
-							      newNFA->getStates()[newNFA->getEndStateIdx()]);
-	newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(classTransition);
+      case DOLLARANCHOR:
+	{
+	  Transition* tn = new StringEndAnchorTransition(newNFA->getStates()[newNFA->getEndStateIdx()]);
+	  newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	  break;
+	}
+      case WILDCHAR:
+	{
+	  Transition* wildTransition = new CharacterTransition("\n",
+							       true,
+							       newNFA->getStates()[newNFA->getEndStateIdx()]);
+	  newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(wildTransition);
+	  break;
+	}
+      case ESCAPE:
+	{
+	  EscapeToken* escapeToken = dynamic_cast<EscapeToken*>(charAst->getToken());
+	  char escapedChar = escapeToken->getEscapedChar();
+	  switch(escapedChar) {
+	  case '1':
+	  case '2':
+	  case '3':
+	  case '4':
+	  case '5':
+	  case '6':
+	  case '7':
+	  case '8':
+	  case '9':
+	    {
+	      Transition* tn = new BackreferenceTransition(escapedChar-'0',
+							   newNFA->getStates()[newNFA->getEndStateIdx()]);
+	      newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	      break;
+	    }
+	  case 'd':
+	    {
+	      Transition* tn = new CharacterTransition("0123456789",
+						       false,
+						       newNFA->getStates()[newNFA->getEndStateIdx()]);
+	      newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	      break;
+	    }
+	  case 'D':
+	    {
+	      Transition* tn = new CharacterTransition("0123456789",
+						       true,
+						       newNFA->getStates()[newNFA->getEndStateIdx()]);
+	      newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	      break;
+	    }
+	  case '.':
+	  case '^':
+	  case '$':
+	  case '*':
+	  case '+':
+	  case '?':
+	  case '{':
+	  case '}':
+	  case '[':
+	  case ']':
+	  case '(':
+	  case ')':
+	  case '|':
+	  case '\\':
+	    {
+	      Transition* tn = new CharacterTransition(std::to_string(escapedChar),
+						       false,
+						       newNFA->getStates()[newNFA->getEndStateIdx()]);
+	      newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(tn);
+	      break;
+	    }					
+	  default:
+	    {
+	      throw std::invalid_argument("Currently unsupported escape sequence: " +
+					  std::to_string(escapedChar));
+	    }
+	  }
+	  break;
+	}
+      default:
+	{
+	  // This should probably hopefully be a CharacterClassToken
+	  CharacterClassToken* classToken = dynamic_cast<CharacterClassToken*>(charAst->getToken());
+	  Transition* classTransition = new CharacterTransition(classToken->get_raw_str_rep(),
+								classToken->get_is_inverted(),
+								newNFA->getStates()[newNFA->getEndStateIdx()]);
+	  newNFA->getStates()[newNFA->getStartStateIdx()]->addTransition(classTransition);
+	  break;
+	}
       }
       delete charAst;
       return newNFA;
@@ -294,7 +316,7 @@ NFA* NFAFactory::createNFA(AstNode* ast) {
   inner->clearStates();
   delete inner;
 
-  std::cout << outer->printableForm() << std::endl;
+  //  std::cout << outer->printableForm() << std::endl;
   
   return outer;
 }

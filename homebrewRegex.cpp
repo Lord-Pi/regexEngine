@@ -85,7 +85,29 @@ void RegexEngine::findAll(std::vector<RegexMatch> &matches,
 void RegexEngine::compile(RegexEngine &engine, std::string regex) {
   
   std::vector<RegexToken*> v = RegexTokenizer::stringToTokensPass(regex);
+
+  /*
+  for(std::vector<RegexToken*>::iterator it = v.begin();
+      it != v.end();
+      ++it) {
+    std::cout << (*it) -> get_str_rep();
+    std::cout << " ";
+  }
+  std::cout << std::endl;
+   */
+  
   std::vector<RegexToken*> v2 = RegexTokenizer::insertConcatPass(v);
+
+  /*
+  for(std::vector<RegexToken*>::iterator it = v2.begin();
+      it != v2.end();
+      ++it) {
+    std::cout << (*it) -> get_str_rep();
+    std::cout << " ";
+  }
+  std::cout << std::endl;
+  */
+  
   AstNode* treeRoot = RegexParser::shuntingYard(v2);
   NFAFactory factory;
   NFA* engineNfa = factory.createNFA(treeRoot);
